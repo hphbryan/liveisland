@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">即時島</string>
+    <string name="tagline">把其他 App 的進行中通知，轉成狀態列膠囊與 Samsung Now Bar 的即時通知。</string>
+
+    <string name="channel_live_name">即時通知</string>
+    <string name="channel_live_description">轉接的進行中活動與短暫顯示的回覆</string>
+
+    <string name="chip_minutes">%1$d 分</string>
+    <string name="chip_replied">已回覆</string>
+    <string name="chip_new">新通知</string>
+    <string name="chip_replied_by">%1$s 已回覆</string>
+    <string name="chip_message">%1$s：%2$s</string>
+    <string name="chip_arriving">即將進站</string>
+    <plurals name="chip_stops">
+        <item quantity="other">%1$d 站</item>
+    </plurals>
+    <string name="setup_listener">讀取通知</string>
+    <string name="setup_listener_desc">用來得知哪些 App 有進行中的活動。</string>
+    <string name="setup_post">發送通知</string>
+    <string name="setup_post_desc">用來顯示轉接後的即時通知。</string>
+    <string name="setup_promoted">顯示為即時通知</string>
+    <string name="setup_promoted_desc">讓系統把它們放進狀態列膠囊與 Now Bar。</string>
+    <string name="action_app_info">開啟應用程式資訊</string>
+    <string name="setup_listener_restricted">如果開關是灰色的：在「應用程式資訊」點右上角 ⋮ ›「允許受限制的設定」，再回來打開。不是從商店安裝的 App，Android 都會要求這一步。</string>
+    <string name="setup_promoted_samsung">Samsung 手機若找不到這個開關，請到「設定 › 開發人員選項」打開「所有 App 的即時通知」。</string>
+    <string name="action_allow">允許</string>
+    <string name="action_open">開啟</string>
+    <string name="action_dismiss">關閉</string>
+    <string name="test_title">外送員在路上</string>
+    <string name="test_text">預計 5 分鐘後送達</string>
+    <plurals name="status_steps_left">
+        <item quantity="other">還差 %1$d 步</item>
+    </plurals>
+    <string name="status_battery">電池最佳化可能讓轉接中斷</string>
+    <string name="action_test">送一則測試</string>
+    <string name="action_adjust">調整</string>
+    <string name="test_sent">已發送測試，看看狀態列與 Now Bar。</string>
+    <string name="more_options">更多選項</string>
+
+
+    <string name="apps_ai">AI 助理</string>
+    <string name="cat_messaging">通訊軟體</string>
+    <string name="cat_delivery">外送</string>
+    <string name="cat_rides">叫車與共享</string>
+    <string name="cat_transit">大眾運輸與導航</string>
+    <string name="cat_workout">運動、睡眠與專注</string>
+    <string name="cat_transfers">上傳與下載</string>
+    <string name="cat_charging">充電與停車</string>
+    <string name="activity_title">最近活動</string>
+    <string name="activity_empty">目前還沒有紀錄。其他 App 發出通知後，這裡會說明即時島怎麼處理、為什麼。</string>
+    <string name="activity_note">只保留 App、時間和處理結果，存在記憶體裡，不會記下通知內容。</string>
+    <string name="activity_clear">清除</string>
+    <string name="just_now">剛剛</string>
+    <string name="out_ongoing">已顯示：進行中</string>
+    <string name="out_flash">已短暫顯示</string>
+    <string name="out_person">已顯示：指定的人</string>
+    <string name="out_person_until_read">已顯示到讀取：指定的人</string>
+    <string name="out_app_off">沒顯示：這個 App 沒開</string>
+    <string name="out_not_ongoing">沒顯示：一般通知（可開「短暫顯示」）</string>
+    <string name="out_not_picked">沒顯示：不是指定的人</string>
+    <string name="out_keyword">沒顯示：含有略過的字詞</string>
+    <string name="out_hidden">沒顯示：在系統設定裡被設成最小化或暫停</string>
+    <string name="out_promo">沒顯示：廣告或推薦</string>
+    <string name="out_background">沒顯示：App 在背景執行的提示</string>
+    <string name="out_paused">沒顯示：即時島已暫停</string>
+    <string name="out_channel">沒顯示：你關掉了這類通知</string>
+    <string name="out_dnd">沒顯示：勿擾模式中</string>
+    <string name="out_native">沒顯示：App 自己就有即時通知</string>
+    <string name="out_samsung">沒顯示：三星已經在顯示</string>
+    <string name="out_media">沒顯示：媒體播放</string>
+    <string name="out_call">沒顯示：通話</string>
+    <string name="out_no_title">沒顯示：通知沒有標題</string>
+    <string name="out_not_relevant">沒顯示：這類通知不處理</string>
+    <string name="out_other">沒顯示</string>
+    <plurals name="app_mode_people">
+        <item quantity="other">指定 %1$d 人</item>
+    </plurals>
+    <string name="people_title">指定的人</string>
+    <string name="people_desc">這些人的訊息一定會顯示。</string>
+    <string name="people_add">新增指定的人</string>
+    <string name="people_until_read">讀取前持續顯示</string>
+    <string name="people_brief">顯示 %1$d 秒</string>
+    <string name="people_remove">移除 %1$s</string>
+    <string name="person_edit">編輯指定的人</string>
+    <string name="person_name">名稱</string>
+    <string name="person_name_hint">和通知上顯示的一樣：人名或群組名稱</string>
+    <string name="person_recent">最近傳訊息的對象</string>
+    <string name="person_until_read_desc">讀訊息之前都留在 Now Bar；關閉則只顯示 %1$d 秒。</string>
+    <string name="save">儲存</string>
+
+    <string name="app_mode_ongoing">進行中時顯示</string>
+    <string name="app_mode_no_people">還沒指定人，訊息不會顯示</string>
+    <string name="app_gemini_only">只轉接 Gemini 回覆</string>
+    <string name="app_settings">%1$s 設定</string>
+    <string name="app_live_now">現在正在島上</string>
+    <string name="app_recent_title">最近</string>
+    <string name="app_recent_all">全部</string>
+    <string name="app_recent_none">還沒收到這個 App 的通知。它的下一則通知會出現在這裡，並說明怎麼處理、為什麼。</string>
+    <string name="app_recent_oneoff_hint">它最近一則是一次性通知，目前這個 App 設定成不顯示。</string>
+    <string name="sheet_preview">在狀態列會像這樣</string>
+    <string name="example_sender">小明</string>
+    <string name="example_message">我到了，你在哪？</string>
+    <string name="example_delivery">12 分 外送員正在路上</string>
+    <string name="example_ride">4 分 白色 Toyota</string>
+    <string name="example_transit">3 分 12 往火車站</string>
+    <string name="example_workout">5.2 km 跑步中</string>
+    <string name="example_transfer" formatted="false">45% 照片備份</string>
+    <string name="example_charging" formatted="false">80% 充電中</string>
+    <plurals name="app_mode_flash">
+        <item quantity="other">新通知 %1$d 秒</item>
+    </plurals>
+    <string name="duration_seconds">%1$d 秒</string>
+    <string name="sheet_keywords_hint">用逗號分隔，例如：優惠, 折扣, 廣告</string>
+    <string name="picker_title">加入 App</string>
+    <string name="picker_search">搜尋 App</string>
+    <string name="picker_empty">找不到符合的 App</string>
+
+
+    <string name="apps_seen">其他偵測到的 App</string>
+
+    <string name="diagnostics_title">通知樣本</string>
+    <string name="diagnostics_intro">記錄已打開的 App 新發出的通知格式與文字，用來依真實範例替特定 App 撰寫規則。只存在這支手機裡，即時島沒有網路權限。</string>
+    <string name="diagnostics_record">記錄樣本</string>
+    <plurals name="diagnostics_count">
+        <item quantity="other">%1$d 則樣本</item>
+    </plurals>
+    <string name="diagnostics_export">分享</string>
+    <string name="diagnostics_clear">清除</string>
+    <string name="diagnostics_clear_confirm">要刪除所有記錄的樣本嗎？</string>
+    <string name="diagnostics_export_warning">樣本含有通知文字，可能包含個人資訊，分享前請先檢查。</string>
+    <string name="diagnostics_export_subject">即時島通知樣本</string>
+    <string name="diagnostics_empty">還沒有樣本。</string>
+    <string name="cancel">取消</string>
+    <string name="delete">刪除</string>
+
+    <string name="about_title">關於</string>
+    <string name="about_version">版本 %1$s</string>
+    <string name="about_privacy_title">隱私</string>
+    <string name="about_privacy">即時島沒有網路權限、沒有分析追蹤、沒有廣告。讀取通知只為了決定要顯示什麼，除非你自己分享樣本，否則任何資料都不會離開手機。</string>
+    <string name="about_license_title">授權</string>
+    <string name="about_license">Apache License 2.0。使用 Jetpack Compose 與 AndroidX（Apache License 2.0）。</string>
+    <string name="about_limits_title">已知限制</string>
+    <string name="about_limits">來源 App 的原通知仍會留在通知欄。使用自訂版面的通知無法讀取。Samsung 展開卡片的標頭一律顯示發送者為即時島。</string>
+
+    <string name="navigate_back">返回</string>
+
+    <!-- Redesigned home, add and app pages -->
+    <string name="live_now">顯示中</string>
+    <plurals name="apps_on_count">
+        <item quantity="other">已開啟 %1$d 個 App</item>
+    </plurals>
+    <string name="island_showing">%1$s 正在即時島上</string>
+    <string name="island_test">這是測試，1 分鐘後會自動消失。</string>
+    <string name="island_idle">待命中</string>
+    <string name="island_idle_desc">開啟的 App 有進行中的事時，會出現在這裡和狀態列。</string>
+    <string name="island_idle_no_apps">先加入幾個 App，它們有進行中的事時會出現在這裡和狀態列。</string>
+    <string name="apps_none_on">還沒有開啟任何 App。</string>
+    <string name="activity_none_yet">還沒有紀錄</string>
+    <string name="clear_search">清除搜尋</string>
+    <string name="apps_all">所有 App</string>
+    <string name="app_preview_generic">會顯示這個 App 通知上的文字。</string>
+    <string name="app_main_switch">在即時島顯示</string>
+    <string name="app_off_hint">開啟後，這個 App 正在進行的事會顯示在狀態列膠囊和 Now Bar，直到結束。</string>
+    <string name="app_off_hint_messaging">開啟後，可以指定哪些人的訊息一定會顯示在狀態列膠囊和 Now Bar。</string>
+    <string name="others_title">其他人的訊息</string>
+    <string name="others_hide">不顯示</string>
+    <string name="others_hide_desc">只顯示上面指定的人。</string>
+    <string name="others_brief">顯示幾秒</string>
+    <string name="others_brief_desc">其他人的訊息顯示幾秒後自動收起。</string>
+    <string name="show_title">要顯示什麼</string>
+    <string name="show_ongoing">只有進行中的事</string>
+    <string name="show_ongoing_desc">例如外送、叫車、倒數，一直顯示到結束。</string>
+    <string name="show_also_oneoff">也顯示一次性通知</string>
+    <string name="show_also_oneoff_desc">例如「已送達」或 AI 回覆，顯示幾秒後自動收起。</string>
+    <string name="keywords_title">略過的字詞</string>
+    <string name="keywords_none">沒有略過的字詞。</string>
+    <string name="keywords_desc">含有這些字詞的通知不會顯示。點一下就移除。</string>
+    <string name="keyword_add">新增字詞</string>
+    <string name="keyword_remove">移除 %1$s</string>
+    <string name="people_empty">這些人的訊息一定會顯示，例如家人或另一半。</string>
+    <string name="channels_title">通知類型</string>
+    <string name="channels_none">這個 App 發過通知後，可以在這裡選要顯示哪幾類。</string>
+    <string name="channels_desc">這個 App 發過的通知類型，名稱是 App 自己取的。</string>
+    <string name="channels_promo_default">看起來是廣告，預設不顯示</string>
+    <string name="shared_keywords_title">所有 App 共用的略過字詞</string>
+    <string name="shared_keywords_desc">任何 App 的通知只要含有這些字詞，就不會顯示。每個 App 也可以另外設定自己的字詞。</string>
+    <string name="shared_keywords_none_hint">也可以設定所有 App 共用的略過字詞。</string>
+    <plurals name="shared_keywords_count">
+        <item quantity="other">另外也會略過 %1$d 個所有 App 共用的字詞。</item>
+    </plurals>
+    <string name="shared_keywords_edit">共用字詞</string>
+    <plurals name="shared_keywords_add_common">
+        <item quantity="other">加入 %1$d 個常見廣告字詞</item>
+    </plurals>
+    <string name="people_quick">最近傳訊息給你的，點一下加入：</string>
+    <string name="people_quick_add">加入%1$s</string>
+    <plurals name="apps_turn_on_suggested">
+        <item quantity="other">一次打開 %1$d 個推薦的 App</item>
+    </plurals>
+    <string name="apps_turn_on_suggested_desc">每個 App 會套用適合它那類的設定，例如外送 App 會略過廣告。通訊軟體要先選人，所以留給你自己設定。</string>
+    <string name="apps_turn_on_all">全部打開</string>
+    <string name="island_paused">已暫停</string>
+    <string name="island_paused_desc">恢復之前，島上不會顯示任何東西。也可以從快速設定的按鈕暫停或恢復。</string>
+    <string name="action_pause">暫停即時島</string>
+    <string name="action_resume">恢復</string>
+    <string name="suggest_title">%1$s 最近有進行中的通知</string>
+    <string name="suggest_desc">要顯示在島上嗎？</string>
+    <string name="suggest_yes">打開</string>
+    <string name="suggest_no">不用</string>
+    <string name="tile_on">開啟中</string>
+    <string name="tile_paused">已暫停</string>
+</resources>

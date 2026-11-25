@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The island: a dark status bar chip with a lit green indicator and a line of text. Inside the 66dp
+  adaptive-icon safe zone.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <path android:pathData="M39,43h30a11,11 0,0 1,0 22H39a11,11 0,0 1,0 -22z">
+        <aapt:attr name="android:fillColor">
+            <gradient android:type="linear"
+                android:startX="54" android:startY="43" android:endX="54" android:endY="65"
+                android:startColor="#FF1E2126" android:endColor="#FF1A1C20" />
+        </aapt:attr>
+    </path>
+    <path android:pathData="M40,46.5a7.5,7.5 0,1 0,0 15a7.5,7.5 0,1 0,0 -15z">
+        <aapt:attr name="android:fillColor">
+            <gradient android:type="radial"
+                android:centerX="40" android:centerY="54" android:gradientRadius="7.5"
+                android:startColor="#333EE0C0" android:endColor="#003EE0C0" />
+        </aapt:attr>
+    </path>
+    <path android:pathData="M40,49.7a4.3,4.3 0,1 0,0 8.6a4.3,4.3 0,1 0,0 -8.6z">
+        <aapt:attr name="android:fillColor">
+            <gradient android:type="radial"
+                android:centerX="39.1" android:centerY="52.3" android:gradientRadius="6"
+                android:startColor="#FFB8FBE8" android:endColor="#FF22C79E" />
+        </aapt:attr>
+    </path>
+    <path android:fillColor="#CCE8ECF2"
+        android:pathData="M51,52h18a2,2 0,0 1,0 4h-18a2,2 0,0 1,0 -4z" />
+</vector>

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Themed-icon variant: the indicator and text line are cut out of the chip so they survive tinting. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <path android:fillColor="#FFFFFFFF" android:fillType="evenOdd"
+        android:pathData="M39,43h30a11,11 0,0 1,0 22H39a11,11 0,0 1,0 -22z M40,49.7a4.3,4.3 0,1 0,0 8.6a4.3,4.3 0,1 0,0 -8.6z M51,52h18a2,2 0,0 1,0 4h-18a2,2 0,0 1,0 -4z" />
+</vector>

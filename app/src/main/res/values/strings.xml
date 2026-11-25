@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">LiveIsland</string>
+    <string name="tagline">Turns other apps\' ongoing notifications into Live Updates in the status bar chip and Samsung\'s Now Bar.</string>
+
+    <!-- Notification channel -->
+    <string name="channel_live_name">Live updates</string>
+    <string name="channel_live_description">Relayed ongoing activities and short-lived replies</string>
+
+    <!-- Status bar chip text -->
+    <string name="chip_minutes">%1$d min</string>
+    <string name="chip_replied">Replied</string>
+    <string name="chip_new">New</string>
+    <string name="chip_replied_by">%1$s replied</string>
+    <string name="chip_message">%1$s: %2$s</string>
+    <string name="chip_arriving">Arriving</string>
+    <plurals name="chip_stops">
+        <item quantity="one">%1$d stop</item>
+        <item quantity="other">%1$d stops</item>
+    </plurals>
+
+    <!-- Setup -->
+    <string name="setup_listener">Read notifications</string>
+    <string name="setup_listener_desc">To see which apps have something in progress.</string>
+    <string name="setup_post">Post notifications</string>
+    <string name="setup_post_desc">To show the relayed Live Updates.</string>
+    <string name="setup_promoted">Show as Live Updates</string>
+    <string name="setup_promoted_desc">Lets the system put them in the status bar chip and Now Bar.</string>
+    <string name="setup_promoted_samsung">On Samsung, if there is no switch for this, turn on Settings › Developer options › \"Live notifications for all apps\".</string>
+    <string name="action_allow">Allow</string>
+    <string name="action_open">Open</string>
+    <string name="action_app_info">Open App info</string>
+    <string name="setup_listener_restricted">If the switch is greyed out: in App info, tap ⋮ › \"Allow restricted settings\", then come back. Android asks this of apps not installed from a store.</string>
+    <string name="action_dismiss">Dismiss</string>
+    <string name="test_title">On its way</string>
+    <string name="test_text">Arriving in about 5 minutes</string>
+    <plurals name="status_steps_left">
+        <item quantity="one">One step left</item>
+        <item quantity="other">%1$d steps left</item>
+    </plurals>
+    <string name="status_battery">Battery optimization can interrupt relaying</string>
+    <string name="action_test">Send a test</string>
+    <string name="action_adjust">Adjust</string>
+    <string name="test_sent">Test sent. Check the status bar and Now Bar.</string>
+    <string name="more_options">More options</string>
+
+
+    <!-- Apps -->
+    <string name="apps_ai">AI assistants</string>
+    <string name="cat_messaging">Messaging</string>
+    <string name="cat_delivery">Food delivery</string>
+    <string name="cat_rides">Rides and sharing</string>
+    <string name="cat_transit">Transit and navigation</string>
+    <string name="cat_workout">Workouts, sleep and focus</string>
+    <string name="cat_transfers">Uploads and downloads</string>
+    <string name="cat_charging">Charging and parking</string>
+    <string name="activity_title">Recent activity</string>
+    <string name="activity_empty">Nothing yet. When apps post notifications, this shows what LiveIsland did with each and why.</string>
+    <string name="activity_note">Only the app, time and outcome are kept, in memory. Notification text is never stored here.</string>
+    <string name="activity_clear">Clear</string>
+    <string name="just_now">Just now</string>
+    <string name="out_ongoing">Shown: in progress</string>
+    <string name="out_flash">Shown briefly</string>
+    <string name="out_person">Shown: picked person</string>
+    <string name="out_person_until_read">Shown until read: picked person</string>
+    <string name="out_app_off">Not shown: this app is off</string>
+    <string name="out_not_ongoing">Not shown: a one-off (turn on brief display to show these)</string>
+    <string name="out_not_picked">Not shown: not a picked person</string>
+    <string name="out_keyword">Not shown: contains a skipped word</string>
+    <string name="out_hidden">Not shown: silenced or paused in system settings</string>
+    <string name="out_promo">Not shown: a promotion or recommendation</string>
+    <string name="out_background">Not shown: a notice that the app is running</string>
+    <string name="out_paused">Not shown: LiveIsland is paused</string>
+    <string name="out_channel">Not shown: you turned off this kind of notification</string>
+    <string name="out_dnd">Not shown: Do Not Disturb</string>
+    <string name="out_native">Not shown: the app shows its own Live Update</string>
+    <string name="out_samsung">Not shown: Samsung already shows it</string>
+    <string name="out_media">Not shown: media playback</string>
+    <string name="out_call">Not shown: call</string>
+    <string name="out_no_title">Not shown: no title</string>
+    <string name="out_not_relevant">Not shown: not this kind of notification</string>
+    <string name="out_other">Not shown</string>
+    <plurals name="app_mode_people">
+        <item quantity="one">%1$d person picked</item>
+        <item quantity="other">%1$d people picked</item>
+    </plurals>
+    <string name="people_title">People</string>
+    <string name="people_desc">Messages from these people always appear.</string>
+    <string name="people_add">Add person</string>
+    <string name="people_until_read">Kept until read</string>
+    <string name="people_brief">Shown for %1$d s</string>
+    <string name="people_remove">Remove %1$s</string>
+    <string name="person_edit">Edit person</string>
+    <string name="person_name">Name</string>
+    <string name="person_name_hint">As the notification shows it: a person or a group</string>
+    <string name="person_recent">Recent senders</string>
+    <string name="person_until_read_desc">Stays in the Now Bar until you read the message. When off, it is shown for %1$d s.</string>
+    <string name="save">Save</string>
+
+    <string name="app_mode_ongoing">Shown while in progress</string>
+    <string name="app_mode_no_people">No one picked yet, so messages won\'t show</string>
+    <string name="app_gemini_only">Gemini replies only</string>
+    <string name="app_settings">%1$s settings</string>
+    <string name="app_live_now">On the island now</string>
+    <string name="app_recent_title">Recently</string>
+    <string name="app_recent_all">All</string>
+    <string name="app_recent_none">Nothing from this app yet. Its next notification shows up here, with what happened and why.</string>
+    <string name="app_recent_oneoff_hint">Its latest notification was a one-off, which this app does not show yet.</string>
+    <string name="sheet_preview">How it looks in the status bar</string>
+    <string name="example_sender">Amy</string>
+    <string name="example_message">here, where are you?</string>
+    <string name="example_delivery">12 min Courier on the way</string>
+    <string name="example_ride">4 min White Toyota</string>
+    <string name="example_transit">3 min 12 to Central Station</string>
+    <string name="example_workout">5.2 km Running</string>
+    <string name="example_transfer" formatted="false">45% Photo backup</string>
+    <string name="example_charging" formatted="false">80% Charging</string>
+    <plurals name="app_mode_flash">
+        <item quantity="one">one-offs for %1$d second</item>
+        <item quantity="other">one-offs for %1$d seconds</item>
+    </plurals>
+    <string name="duration_seconds">%1$d s</string>
+    <string name="sheet_keywords_hint">Separate words with commas, e.g. sale, coupon, promo</string>
+    <string name="picker_title">Add apps</string>
+    <string name="picker_search">Search apps</string>
+    <string name="picker_empty">No matching apps</string>
+
+
+    <string name="apps_seen">Other apps</string>
+
+    <!-- Diagnostics -->
+    <string name="diagnostics_title">Notification samples</string>
+    <string name="diagnostics_intro">Records the structure and text of new notifications from the apps you enabled, so rules for specific apps can be written from real examples. Kept on this device only; LiveIsland has no internet access.</string>
+    <string name="diagnostics_record">Record samples</string>
+    <plurals name="diagnostics_count">
+        <item quantity="one">%1$d sample</item>
+        <item quantity="other">%1$d samples</item>
+    </plurals>
+    <string name="diagnostics_export">Share</string>
+    <string name="diagnostics_clear">Clear</string>
+    <string name="diagnostics_clear_confirm">Delete all recorded samples?</string>
+    <string name="diagnostics_export_warning">Samples contain notification text, which may include personal information. Review before sharing.</string>
+    <string name="diagnostics_export_subject">LiveIsland notification samples</string>
+    <string name="diagnostics_empty">No samples yet.</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete">Delete</string>
+
+    <!-- About -->
+    <string name="about_title">About</string>
+    <string name="about_version">Version %1$s</string>
+    <string name="about_privacy_title">Privacy</string>
+    <string name="about_privacy">LiveIsland has no internet permission, no analytics and no ads. Notifications are read only to decide what to show, and nothing leaves your device unless you share samples yourself.</string>
+    <string name="about_license_title">License</string>
+    <string name="about_license">Apache License 2.0. Built with Jetpack Compose and AndroidX (Apache License 2.0).</string>
+    <string name="about_limits_title">Known limits</string>
+    <string name="about_limits">The source app\'s own notification stays in the shade. Notifications drawn with custom layouts cannot be read. Samsung\'s expanded card header always names LiveIsland as the sender.</string>
+
+    <string name="navigate_back">Back</string>
+
+    <!-- Redesigned home, add and app pages -->
+    <string name="live_now">Live</string>
+    <plurals name="apps_on_count">
+        <item quantity="one">%1$d app on</item>
+        <item quantity="other">%1$d apps on</item>
+    </plurals>
+    <string name="island_showing">%1$s is on the island</string>
+    <string name="island_test">This is a test; it goes away in a minute.</string>
+    <string name="island_idle">Waiting</string>
+    <string name="island_idle_desc">When an app you turned on has something in progress, it appears here and in the status bar.</string>
+    <string name="island_idle_no_apps">Add a few apps first. When they have something in progress, it appears here and in the status bar.</string>
+    <string name="apps_none_on">No apps are on yet.</string>
+    <string name="activity_none_yet">Nothing yet</string>
+    <string name="clear_search">Clear search</string>
+    <string name="apps_all">All apps</string>
+    <string name="app_preview_generic">Shows the words on this app\'s notification.</string>
+    <string name="app_main_switch">Show on the island</string>
+    <string name="app_off_hint">When on, whatever this app has in progress appears in the status bar chip and the Now Bar until it ends.</string>
+    <string name="app_off_hint_messaging">When on, you can pick people whose messages always appear in the status bar chip and the Now Bar.</string>
+    <string name="others_title">Everyone else</string>
+    <string name="others_hide">Don\'t show</string>
+    <string name="others_hide_desc">Only the people above.</string>
+    <string name="others_brief">Show briefly</string>
+    <string name="others_brief_desc">Messages from anyone else go away after a few seconds.</string>
+    <string name="show_title">What to show</string>
+    <string name="show_ongoing">Only what\'s in progress</string>
+    <string name="show_ongoing_desc">Deliveries, rides, countdowns, until they end.</string>
+    <string name="show_also_oneoff">Also one-off notifications</string>
+    <string name="show_also_oneoff_desc">Such as \"Delivered\" or an AI reply, gone after a few seconds.</string>
+    <string name="keywords_title">Skipped words</string>
+    <string name="keywords_none">No words are skipped.</string>
+    <string name="keywords_desc">Notifications with these words aren\'t shown. Tap one to remove it.</string>
+    <string name="keyword_add">Add words</string>
+    <string name="keyword_remove">Remove %1$s</string>
+    <string name="people_empty">Messages from these people always appear, such as family or a partner.</string>
+    <string name="channels_title">Kinds of notifications</string>
+    <string name="channels_none">Once this app posts notifications, choose here which kinds of them to show.</string>
+    <string name="channels_desc">The kinds this app has posted, by the names it gives them.</string>
+    <string name="channels_promo_default">Looks like promotions, so off unless you turn it on</string>
+    <string name="shared_keywords_title">Words skipped for all apps</string>
+    <string name="shared_keywords_desc">A notification from any app that contains one of these words is not shown. Each app can also skip words of its own.</string>
+    <string name="shared_keywords_none_hint">Words can also be skipped for every app at once.</string>
+    <plurals name="shared_keywords_count">
+        <item quantity="one">Also skips %1$d word set for all apps.</item>
+        <item quantity="other">Also skips %1$d words set for all apps.</item>
+    </plurals>
+    <string name="shared_keywords_edit">All apps</string>
+    <plurals name="shared_keywords_add_common">
+        <item quantity="one">Add %1$d common promotion word</item>
+        <item quantity="other">Add %1$d common promotion words</item>
+    </plurals>
+    <string name="people_quick">Recently messaged you; tap to add:</string>
+    <string name="people_quick_add">Add %1$s</string>
+    <plurals name="apps_turn_on_suggested">
+        <item quantity="one">Turn on %1$d suggested app</item>
+        <item quantity="other">Turn on %1$d suggested apps</item>
+    </plurals>
+    <string name="apps_turn_on_suggested_desc">Each starts with what suits its kind, such as promotions skipped for delivery apps. Chat apps are left for you to set up with people.</string>
+    <string name="apps_turn_on_all">Turn on all</string>
+    <string name="island_paused">Paused</string>
+    <string name="island_paused_desc">Nothing is shown on the island until you resume. The Quick Settings tile does this too.</string>
+    <string name="action_pause">Pause LiveIsland</string>
+    <string name="action_resume">Resume</string>
+    <string name="suggest_title">%1$s has had something in progress</string>
+    <string name="suggest_desc">Show it on the island?</string>
+    <string name="suggest_yes">Turn on</string>
+    <string name="suggest_no">No thanks</string>
+    <string name="tile_on">On</string>
+    <string name="tile_paused">Paused</string>
+</resources>
