@@ -24,11 +24,19 @@ enum class ChipSource(val key: String) {
 
 /** Applies a [ChipSource] to a notification's words. */
 object ChipRule {
-    /** A short number. Long digit runs (order numbers, phone numbers) are skipped: what is worth a glance is short. */
-    private const val DIGITS = """(?<![\d#])\d{1,5}(?:[.:,]\d{1,2})?(?!\d)"""
-    /** A number, then its unit: "%", a Chinese measure word, or a short word of letters ("min", "stops"). */
+    /**
+     * A short number on its own. Long digit runs (order numbers, phone numbers) and pieces of a longer number
+     * ("234" of "1,234") are skipped: what is worth a glance is short.
+     */
+    private const val DIGITS = """(?<![\d#.,:])\d{1,5}(?:[.:,]\d{1,2})?(?![.,:]?\d)"""
+
+    /**
+     * A number, then its unit: "%", a Chinese measure word, or a known English unit ("min", "km", "stops"),
+     * not any word, so "Bus 12 to Central" is not "12 to".
+     */
     private val WITH_UNIT = Regex(
-        DIGITS + """\s*(?:%|分鐘|分钟|小時|小时|公里|公尺|公斤|[位站分秒元個个件人號号樓楼天次台輛辆杯份張张]|[a-zA-Z]{1,5}(?![a-zA-Z]))""",
+        DIGITS + """\s*(?:%|分鐘|分钟|小時|小时|公里|公尺|公斤|[位站分秒元個个件人號号樓楼天次台輛辆杯份張张]|""" +
+            """(?i:mins?|minutes?|hrs?|hours?|h|secs?|s|km|mi|m|ft|kg|lbs?|[kmg]b|stops?|items?)(?![a-zA-Z]))""",
     )
     private val BARE = Regex(DIGITS)
 

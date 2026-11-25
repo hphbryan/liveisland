@@ -48,6 +48,12 @@ class Relay private constructor(context: Context) {
     /** What the overview shows now, to post it only when that changes; null when it is not posted. */
     private var overviewShown: List<Any?>? = null
 
+    /** False until the overview was first checked in this process (one may be left from before a restart). */
+    private var overviewChecked = false
+
+    /** The activities the overview listed when the user swiped it away. */
+    private var overviewSwiped: Set<String>? = null
+
     /** Source notification each relayed copy was built from, for its icons and tap action. */
     private val sources = HashMap<String, Notification>()
 
@@ -233,20 +239,24 @@ class Relay private constructor(context: Context) {
      * (Notification.MetricStyle). Only activities whose copies may show on the lock screen are listed.
      */
     private fun updateOverview() {
-        val items = latest.values
-            .filter {
-                it.kind == LiveContent.Kind.ONGOING && it.lockScreen == LockScreen.DEFAULT &&
-                    it.sourceKey !in dismissed && it.sourceKey in sources
-            }
+        val items = overviewItems()
             // The one holding the chip first: an app put first, then the latest added.
             .sortedWith(
                 compareByDescending<LiveContent> { settings.isFirst(it.packageName) }.thenByDescending { addedAt[it.sourceKey] ?: 0L },
             )
         if (Build.VERSION.SDK_INT < 37 || !settings.state.value.overview || items.size < 2) {
-            if (overviewShown != null) nm.cancel(OVERVIEW_ID)
+            // Before the first check in this process, one may be left from before a restart.
+            if (overviewShown != null || !overviewChecked) nm.cancel(OVERVIEW_ID)
+            overviewChecked = true
             overviewShown = null
+            overviewSwiped = null
             return
         }
+        overviewChecked = true
+        // Swiped away: not again for the same activities.
+        val keys = items.mapTo(HashSet()) { it.sourceKey }
+        if (keys == overviewSwiped) return
+        overviewSwiped = null
         val key = items.map { listOf(it.packageName, it.chip, it.chronometer, it.title) }
         if (key == overviewShown) return
         val rows = items.map { LiveNotifications.OverviewRow(icons.identity(it.packageName)?.name ?: it.title, it) }
@@ -260,6 +270,18 @@ class Relay private constructor(context: Context) {
             }
             // Debug builds only, and no notification text.
             .onFailure { if (BuildConfig.DEBUG) Log.w(TAG, "overview not posted", it) }
+    }
+
+    /** Activities the overview lists: on, may show on the lock screen, not dismissed. */
+    private fun overviewItems() = latest.values.filter {
+        it.kind == LiveContent.Kind.ONGOING && it.lockScreen == LockScreen.DEFAULT && it.sourceKey !in dismissed && it.sourceKey in sources
+    }
+
+    /** The user swiped the overview away: leave it off until the activities in it change. */
+    fun overviewRemoved() {
+        if (overviewShown == null) return
+        overviewSwiped = overviewItems().mapTo(HashSet()) { it.sourceKey }
+        overviewShown = null
     }
 
     private fun forget(key: String) {

@@ -60,6 +60,7 @@ object RulesText {
             if (colon <= 0) continue
             val key = line.substring(0, colon).trim().lowercase()
             val value = line.substring(colon + 1).trim()
+            val word = value.lowercase()
             if (key == "app") {
                 current?.let(out::add)
                 current = value.takeIf(::isPackageName)?.let { AppRules(it) }
@@ -67,10 +68,10 @@ object RulesText {
             }
             val r = current ?: continue
             current = when (key) {
-                "one-offs" -> r.copy(oneOffs = value == "on")
+                "one-offs" -> r.copy(oneOffs = word == "on")
                 "seconds" -> value.toIntOrNull()?.takeIf { it in SourcePolicy.FLASH_SECONDS_CHOICES }?.let { r.copy(seconds = it) } ?: r
-                "chip" -> r.copy(chip = ChipSource.of(value))
-                "first" -> r.copy(first = value == "on")
+                "chip" -> r.copy(chip = ChipSource.of(word))
+                "first" -> r.copy(first = word == "on")
                 "skip" -> r.copy(skip = KeywordFilter.parse(value))
                 "show type" -> if (value.isEmpty()) r else r.copy(types = r.types + (value to true))
                 "hide type" -> if (value.isEmpty()) r else r.copy(types = r.types + (value to false))

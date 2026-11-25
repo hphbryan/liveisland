@@ -109,6 +109,7 @@ class RelayListenerService : NotificationListenerService() {
             if (sbn.id == Relay.NOTIFICATION_ID && reason != REASON_APP_CANCEL && reason != REASON_APP_CANCEL_ALL) {
                 sbn.tag?.let(relay::copyRemoved)
             }
+            if (sbn.id == Relay.OVERVIEW_ID && reason != REASON_APP_CANCEL && reason != REASON_APP_CANCEL_ALL) relay.overviewRemoved()
             // The test swiped away in the shade leaves the home screen's island too.
             if (sbn.id == Relay.TEST_NOTIFICATION_ID) Relay.removeShown(Relay.TEST_KEY)
             return

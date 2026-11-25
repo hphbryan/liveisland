@@ -33,6 +33,9 @@ object ActivityLog {
 
     fun clear() = _entries.update { emptyList() }
 
-    /** Puts back entries removed by [clear] (Undo), keeping anything recorded since on top. */
-    fun restore(old: List<Entry>) = _entries.update { now -> (now + old).distinct().take(MAX_ENTRIES) }
+    /**
+     * Puts back entries removed by [clear] (Undo), keeping anything recorded since on top. One entry per
+     * notification and outcome, as [record] keeps it: an update recorded since replaces its older entry.
+     */
+    fun restore(old: List<Entry>) = _entries.update { now -> (now + old).distinctBy { it.key to it.outcome }.take(MAX_ENTRIES) }
 }

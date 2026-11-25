@@ -41,5 +41,13 @@ class ChipRuleTest {
         assertNull(ChipRule.pick(ChipSource.NUMBER, "Order 98765432", "on its way"))
     }
 
+    @Test fun `ordinary words are not units`() {
+        assertEquals("3 stops", pick(ChipSource.NUMBER, "Bus 12 to Central", "3 stops away"))
+        assertEquals("2", pick(ChipSource.NUMBER, "Step 2 of 4", null))
+        assertEquals("2", pick(ChipSource.NUMBER, "2 new messages", null))
+    }
+
+    @Test fun `part of a longer number is not taken`() = assertNull(ChipRule.pick(ChipSource.NUMBER, "Run", "1,234 km total"))
+
     @Test fun `no number falls back`() = assertNull(ChipRule.pick(ChipSource.NUMBER, "Preparing", "Soon"))
 }

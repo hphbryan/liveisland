@@ -46,4 +46,11 @@ class RulesTextTest {
         val text = "LiveIsland rules\nchip: title\napp: not a package\nfirst: on\napp: com.example.a\nfirst: on"
         assertEquals(listOf(AppRules("com.example.a", first = true)), RulesText.parse(text))
     }
+
+    @Test fun `values are read in any case`() {
+        val r = RulesText.parse("LiveIsland rules\napp: com.example.a\none-offs: On\nchip: Number\nfirst: ON").single()
+        assertEquals(true, r.oneOffs)
+        assertEquals(ChipSource.NUMBER, r.chip)
+        assertEquals(true, r.first)
+    }
 }

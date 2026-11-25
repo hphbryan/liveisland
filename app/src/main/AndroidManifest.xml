@@ -50,7 +50,7 @@
                 android:value="conversations|alerting|ongoing|silent" />
         </service>
 
-        <!-- Quick Settings tile to pause and resume relaying. -->
+        <!-- Shares exported notification samples with apps the user picks. -->
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.files"
@@ -61,6 +61,7 @@
                 android:resource="@xml/shared_files" />
         </provider>
 
+        <!-- Quick Settings tile to pause and resume relaying. -->
         <service
             android:name=".platform.PauseTileService"
             android:exported="true"

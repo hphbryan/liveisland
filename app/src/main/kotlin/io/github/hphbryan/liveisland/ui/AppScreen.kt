@@ -135,12 +135,6 @@ fun AppScreen(packageName: String, padding: PaddingValues, onActivity: () -> Uni
             onShowOneOffs = { store.setFlash(packageName, true) },
             onAll = onActivity,
         )
-        ChipSection(
-            source = settings.chipSources[packageName] ?: ChipSource.AUTO,
-            onSource = { store.setChipSource(packageName, it) },
-            first = packageName in settings.first,
-            onFirst = { store.setFirst(packageName, it) },
-        )
         if (messaging) {
             SectionHeader(stringResource(R.string.people_title))
             PeopleSection(packageName, settings, store)
@@ -171,6 +165,13 @@ fun AppScreen(packageName: String, padding: PaddingValues, onActivity: () -> Uni
                 PeopleSection(packageName, settings, store)
             }
         }
+        // How it looks, after what is shown: for a messaging app, choosing people comes first.
+        ChipSection(
+            source = settings.chipSources[packageName] ?: ChipSource.AUTO,
+            onSource = { store.setChipSource(packageName, it) },
+            first = packageName in settings.first,
+            onFirst = { store.setFirst(packageName, it) },
+        )
         ChannelSection(
             channels = settings.channels[packageName].orEmpty(),
             choices = settings.channelChoices[packageName].orEmpty(),

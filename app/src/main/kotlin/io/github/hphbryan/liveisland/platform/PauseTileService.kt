@@ -1,9 +1,7 @@
 package io.github.hphbryan.liveisland.platform
 
-import android.app.PendingIntent
 import android.content.ComponentName
 import android.content.Context
-import android.content.Intent
 import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
 import io.github.hphbryan.liveisland.R
@@ -21,8 +19,7 @@ class PauseTileService : TileService() {
     override fun onClick() {
         if (!SetupStatus.read(this).ready) {
             // Nothing relays until setup is done, so pausing would mean nothing: open the app to finish it.
-            val open = Intent(this, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            startActivityAndCollapse(PendingIntent.getActivity(this, 0, open, PendingIntent.FLAG_IMMUTABLE))
+            startActivityAndCollapse(MainActivity.open(this))
             return
         }
         store.setPaused(!store.state.value.paused)

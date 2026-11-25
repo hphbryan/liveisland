@@ -5,6 +5,25 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-11-26
+
+### Fixed
+- In the release APK, switches, buttons and choices often seemed to do nothing: the change was saved, but the
+  screen did not show it until the app was reopened. The code shrinker removed what kept the screens informed
+  of changes. Debug builds were not affected, which is why it was missed. This was also the case in 0.1.0 and 0.2.0.
+- Tapping Undo after clearing Recent activity could close the app while an app was being relayed.
+- On Android 17, the overview card could stay on screen with old values after the app was restarted, and came
+  back after being swiped away. It now goes away with its activities and stays away once swiped, until the
+  activities change.
+- A suggestion for an app that had since been uninstalled could keep every other suggestion from appearing.
+- "Number" in the status bar picked ordinary words as units ("12 to" in "Bus 12 to Central") and pieces of
+  longer numbers ("234 km" of "1,234 km").
+- On the page of a messaging app, choosing people comes first again, before how the status bar looks.
+- Pasted settings are read whatever their case ("On", "Number").
+- Opening LiveIsland from its notifications or the Quick Settings tile brings back the screen already open
+  instead of opening a second one.
+- Copy all settings counts only apps that are installed.
+
 ## [0.2.0] - 2026-11-26
 
 ### Added
@@ -103,6 +122,7 @@ First public version.
 - Pause everything from the menu or a Quick Settings tile.
 - Fixed teal-and-ink colour scheme; English and Traditional Chinese.
 
-[Unreleased]: https://github.com/hphbryan/liveisland/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/hphbryan/liveisland/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/hphbryan/liveisland/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/hphbryan/liveisland/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/hphbryan/liveisland/releases/tag/v0.1.0

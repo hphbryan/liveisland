@@ -149,11 +149,6 @@ object LiveNotifications {
     @RequiresApi(37)
     fun overview(context: Context, rows: List<OverviewRow>): Notification {
         val metrics = rows.take(MAX_METRICS).map { Notification.Metric(metricValue(context, it.content), it.label) }
-        val open = PendingIntent.getActivity(
-            context, 0,
-            Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
-            PendingIntent.FLAG_IMMUTABLE,
-        )
         return Notification.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_island)
             .setContentTitle(context.resources.getQuantityString(R.plurals.overview_title, rows.size, rows.size))
@@ -162,7 +157,7 @@ object LiveNotifications {
             .setOnlyAlertOnce(true)
             .setCategory(Notification.CATEGORY_PROGRESS)
             .setShowWhen(false)
-            .setContentIntent(open)
+            .setContentIntent(MainActivity.open(context))
             .setStyle(Notification.MetricStyle().setMetrics(metrics).setCriticalMetric(0))
             .addExtras(Bundle().apply { putBoolean(EXTRA_REQUEST_PROMOTED_ONGOING, true) })
             .build()

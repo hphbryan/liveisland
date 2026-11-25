@@ -6,9 +6,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.Arrangement
 import android.Manifest
 import android.app.NotificationManager
-import android.app.PendingIntent
 import android.content.Context
-import android.content.Intent
 import android.widget.Toast
 import android.content.ContextWrapper
 import android.app.Activity
@@ -175,7 +173,7 @@ fun HomeScreen(
             }
         }
         // Something the user keeps dismissing: offer to stop showing it. One suggestion at a time.
-        val less = lessSuggestion(habitCounts, settings)
+        val less = lessSuggestion(habitCounts, settings, installedOn)
         // An app seen posting something in progress that is not on yet: one tap to turn it on.
         val suggestion = settings.seen.firstOrNull {
             it !in settings.enabled && it !in settings.suggestionsDismissed && it != context.packageName && !KnownApps.hasPeople(it)
@@ -448,11 +446,11 @@ private data class LessSuggestion(val packageName: String, val channelId: String
 
 /**
  * A notification type the user keeps dismissing, if the app has other types too and its name is known;
- * otherwise an app the user keeps dismissing. Only apps that are on, and types still shown.
+ * otherwise an app the user keeps dismissing. Only apps that are on and installed ([on]), and types still shown.
  */
-private fun lessSuggestion(habits: Habits.State, settings: SettingsStore.State): LessSuggestion? {
+private fun lessSuggestion(habits: Habits.State, settings: SettingsStore.State, on: Set<String>): LessSuggestion? {
     habits.types.entries
-        .filter { (k, n) -> n >= Habits.TYPE_THRESHOLD && k.first in settings.enabled && settings.channelChoices[k.first]?.get(k.second) != false }
+        .filter { (k, n) -> n >= Habits.TYPE_THRESHOLD && k.first in on && settings.channelChoices[k.first]?.get(k.second) != false }
         .sortedByDescending { it.value }
         .forEach { (k, n) ->
             val types = settings.channels[k.first].orEmpty()
@@ -460,7 +458,7 @@ private fun lessSuggestion(habits: Habits.State, settings: SettingsStore.State):
             if (name != null && types.size > 1) return LessSuggestion(k.first, k.second, name, n)
         }
     return habits.apps.entries
-        .filter { (p, n) -> n >= Habits.APP_THRESHOLD && p in settings.enabled }
+        .filter { (p, n) -> n >= Habits.APP_THRESHOLD && p in on }
         .maxByOrNull { it.value }
         ?.let { LessSuggestion(it.key, null, null, it.value) }
 }
@@ -535,11 +533,7 @@ private fun postTestNotification(context: Context) {
         largeIcon = null,
         app = null,
         // Tapping the test opens LiveIsland, like tapping a relayed copy opens its app.
-        contentIntent = PendingIntent.getActivity(
-            context, 0,
-            Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
-            PendingIntent.FLAG_IMMUTABLE,
-        ),
+        contentIntent = MainActivity.open(context),
         actions = listOf(DismissReceiver.action(context, tag = null, id = Relay.TEST_NOTIFICATION_ID)),
         timeoutMillis = TEST_DURATION_MS,
     )

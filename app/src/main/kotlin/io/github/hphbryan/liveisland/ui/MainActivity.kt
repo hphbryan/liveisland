@@ -3,6 +3,8 @@ package io.github.hphbryan.liveisland.ui
 import io.github.hphbryan.liveisland.platform.SettingsStore
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.platform.LocalContext
+import android.app.PendingIntent
+import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -50,18 +52,34 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
-        if (savedInstanceState == null) openRequest.value = intent.getStringExtra(EXTRA_APP)
+        if (savedInstanceState == null) openRequest.value = appToOpen(intent)
         setContent { LiveIslandTheme { LiveIslandApp(openRequest.value) { openRequest.value = null } } }
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        intent.getStringExtra(EXTRA_APP)?.let { openRequest.value = it }
+        appToOpen(intent)?.let { openRequest.value = it }
+    }
+
+    /** The app named by [EXTRA_APP], if it is installed (the activity is exported, so anything can send one). */
+    private fun appToOpen(intent: Intent): String? = intent.getStringExtra(EXTRA_APP)?.takeIf {
+        runCatching { packageManager.getApplicationInfo(it, 0) }.isSuccess
     }
 
     companion object {
         /** Package name of the app whose page to open. */
         const val EXTRA_APP = "io.github.hphbryan.liveisland.extra.APP"
+
+        /**
+         * Opens LiveIsland from a notification or tile, bringing back the screen already open rather than
+         * stacking another. The same intent everywhere, as the system shares one PendingIntent among them.
+         */
+        fun open(context: Context): PendingIntent = PendingIntent.getActivity(
+            context, 0,
+            Intent(context, MainActivity::class.java)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP),
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+        )
     }
 }
 
@@ -191,7 +209,7 @@ private fun LiveIslandApp(openRequest: String?, onOpened: () -> Unit) {
                                 text = { Text(stringResource(R.string.rules_copy_all)) },
                                 onClick = {
                                     menuOpen = false
-                                    copyRules(context, store, store.state.value.enabled.sorted())
+                                    copyRules(context, store, installedPackages(context, store.state.value.enabled).sorted())
                                 },
                             )
                             DropdownMenuItem(

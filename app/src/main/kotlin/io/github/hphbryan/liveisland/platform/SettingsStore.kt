@@ -3,6 +3,7 @@ package io.github.hphbryan.liveisland.platform
 import android.content.Context
 import android.content.SharedPreferences
 import android.content.pm.ApplicationInfo
+import androidx.annotation.Keep
 import androidx.core.content.edit
 import io.github.hphbryan.liveisland.core.AppRules
 import io.github.hphbryan.liveisland.core.ChipSource
@@ -64,6 +65,12 @@ class SettingsStore private constructor(context: Context) : SourcePolicy {
     private val _state = MutableStateFlow(load())
     val state: StateFlow<State> = _state.asStateFlow()
 
+    /**
+     * SharedPreferences holds its listeners weakly, so this field is the only thing keeping it alive. Without
+     * @Keep, R8 turns a field that is only read in init into a local, the listener is collected, and in release
+     * builds the screens stop updating after a change.
+     */
+    @field:Keep
     private val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, _ -> _state.value = load() }
 
     init {
