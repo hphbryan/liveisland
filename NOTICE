@@ -1,0 +1,9 @@
+LiveIsland
+Copyright 2026 hphbryan
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+It depends on Jetpack Compose and other AndroidX libraries, Copyright The Android
+Open Source Project, licensed under the Apache License, Version 2.0.
+
+app/src/main/res/drawable/ic_close.xml is the "close" icon from Google's Material
+Icons, Copyright Google LLC, licensed under the Apache License, Version 2.0.

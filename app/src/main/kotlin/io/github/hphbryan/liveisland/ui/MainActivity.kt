@@ -1,0 +1,161 @@
+package io.github.hphbryan.liveisland.ui
+
+import io.github.hphbryan.liveisland.platform.SettingsStore
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.ui.platform.LocalContext
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
+import io.github.hphbryan.liveisland.R
+import kotlinx.coroutines.launch
+
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge()
+        super.onCreate(savedInstanceState)
+        setContent { LiveIslandTheme { LiveIslandApp() } }
+    }
+}
+
+/** Screens by name; an app's page is "app:<package>". Kept as strings so the back stack survives recreation. */
+private object Route {
+    const val HOME = "home"
+    const val ADD = "add"
+    const val ACTIVITY = "activity"
+    const val SAMPLES = "samples"
+    const val ABOUT = "about"
+    const val KEYWORDS = "keywords"
+    const val APP = "app:"
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun LiveIslandApp() {
+    var stack by rememberSaveable { mutableStateOf(listOf(Route.HOME)) }
+    val route = stack.last()
+    val push = { r: String -> stack = stack + r }
+    val pop = { stack = stack.dropLast(1) }
+    BackHandler(enabled = stack.size > 1) { pop() }
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    val snackbar = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    var menuOpen by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val store = remember { SettingsStore.get(context) }
+    val paused = store.state.collectAsStateWithLifecycle().value.paused
+    val testSent = stringResource(R.string.test_sent)
+    val appPackage = route.removePrefix(Route.APP).takeIf { route.startsWith(Route.APP) }
+
+    Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        snackbarHost = { SnackbarHost(snackbar) },
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        when {
+                            appPackage != null -> rememberAppInfo(appPackage).label
+                            route == Route.ADD -> stringResource(R.string.picker_title)
+                            route == Route.ACTIVITY -> stringResource(R.string.activity_title)
+                            route == Route.SAMPLES -> stringResource(R.string.diagnostics_title)
+                            route == Route.ABOUT -> stringResource(R.string.about_title)
+                            route == Route.KEYWORDS -> stringResource(R.string.shared_keywords_title)
+                            else -> stringResource(R.string.app_name)
+                        },
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                },
+                navigationIcon = {
+                    if (stack.size > 1) {
+                        IconButton(onClick = pop) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.navigate_back))
+                        }
+                    }
+                },
+                actions = {
+                    if (route == Route.HOME) {
+                        IconButton(onClick = { menuOpen = true }) {
+                            Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.more_options))
+                        }
+                        DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(if (paused) R.string.action_resume else R.string.action_pause)) },
+                                onClick = {
+                                    menuOpen = false
+                                    setPaused(context, store, !paused)
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.shared_keywords_title)) },
+                                onClick = {
+                                    menuOpen = false
+                                    push(Route.KEYWORDS)
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.diagnostics_title)) },
+                                onClick = {
+                                    menuOpen = false
+                                    push(Route.SAMPLES)
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.about_title)) },
+                                onClick = {
+                                    menuOpen = false
+                                    push(Route.ABOUT)
+                                },
+                            )
+                        }
+                    }
+                },
+                scrollBehavior = scrollBehavior,
+            )
+        },
+    ) { padding ->
+        val openApp = { pkg: String -> push(Route.APP + pkg) }
+        when {
+            appPackage != null -> AppScreen(appPackage, padding, onActivity = { push(Route.ACTIVITY) }, onSharedKeywords = { push(Route.KEYWORDS) })
+            route == Route.KEYWORDS -> SharedKeywordsScreen(padding)
+            route == Route.ADD -> AddAppScreen(padding, onOpenApp = openApp)
+            route == Route.ACTIVITY -> ActivityScreen(padding, onOpenApp = openApp)
+            route == Route.SAMPLES -> SamplesScreen(padding)
+            route == Route.ABOUT -> AboutScreen(padding)
+            else -> HomeScreen(
+                padding,
+                onOpenApp = openApp,
+                onAddApp = { push(Route.ADD) },
+                onActivity = { push(Route.ACTIVITY) },
+                onTestSent = { scope.launch { snackbar.showSnackbar(testSent) } },
+            )
+        }
+    }
+}

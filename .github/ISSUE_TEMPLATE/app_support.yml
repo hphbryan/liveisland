@@ -1,0 +1,29 @@
+name: App support
+description: Ask for better support of a specific app
+labels: [app-support]
+body:
+  - type: input
+    id: app
+    attributes:
+      label: App name and package
+      placeholder: YouBike 2.0 (tw.com.youbike.plus)
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What should the Live Update show?
+    validations:
+      required: true
+  - type: textarea
+    id: samples
+    attributes:
+      label: Notification samples
+      description: >
+        From LiveIsland › Notification samples › Share. Remove names, addresses, phone numbers and anything
+        else personal before posting.
+      render: json
+  - type: input
+    id: device
+    attributes:
+      label: Device, One UI / Android version
