@@ -47,7 +47,14 @@ class RelayListenerService : NotificationListenerService() {
         reconcile()
         settingsJob?.cancel()
         settingsJob = scope.launch {
-            settings.state.map { listOf(it.enabled, it.flash, it.people, it.keywords, it.sharedKeywords, it.paused, it.channelChoices) }.distinctUntilChanged().drop(1)
+            settings.state
+                .map {
+                    listOf(
+                        it.enabled, it.flash, it.people, it.keywords, it.sharedKeywords, it.paused, it.channelChoices,
+                        it.chipSources, it.first, it.overview,
+                    )
+                }
+                .distinctUntilChanged().drop(1)
                 .collect { reconcile() }
         }
     }
@@ -97,7 +104,13 @@ class RelayListenerService : NotificationListenerService() {
 
     override fun onNotificationRemoved(sbn: StatusBarNotification, rankingMap: RankingMap, reason: Int) {
         if (sbn.packageName == packageName) {
-            if (sbn.id == Relay.NOTIFICATION_ID) sbn.tag?.let(relay::copyRemoved)
+            // Our own cancels already keep the home screen in step; one may also be a copy taken away to be
+            // added again at once (see Relay), which is still on screen.
+            if (sbn.id == Relay.NOTIFICATION_ID && reason != REASON_APP_CANCEL && reason != REASON_APP_CANCEL_ALL) {
+                sbn.tag?.let(relay::copyRemoved)
+            }
+            // The test swiped away in the shade leaves the home screen's island too.
+            if (sbn.id == Relay.TEST_NOTIFICATION_ID) Relay.removeShown(Relay.TEST_KEY)
             return
         }
         if (isRecording(sbn)) samples.recordRemoval(sbn, reason)

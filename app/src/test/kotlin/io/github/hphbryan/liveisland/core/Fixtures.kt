@@ -64,7 +64,9 @@ class FakePolicy(
     private val people: Map<String, List<PersonRule>> = emptyMap(),
     private val paused: Boolean = false,
     private val channels: Map<String, Boolean> = emptyMap(),
+    private val chips: Map<String, ChipSource> = emptyMap(),
 ) : SourcePolicy {
+    override fun chipSource(packageName: String) = chips[packageName] ?: ChipSource.AUTO
     override fun isPaused() = paused
     override fun channelChoice(packageName: String, channelId: String) = channels[channelId]
     override fun people(packageName: String) = people[packageName].orEmpty()

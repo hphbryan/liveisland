@@ -71,7 +71,8 @@ choose **Watch › Custom › Releases** at the top of this page on GitHub.
    (remaining minutes, "arriving", stops to go, distance, a clock time or a percentage) and the chip adds
    what it is about: "3 min 12 to Central Station". Messages show "Amy: on my way", AI replies "Replied" beside the app's icon,
    other one-offs the notification's own words. `TextShortener` fits it to about 16 columns (CJK characters
-   count as two); One UI scrolls what does not fit in the chip.
+   count as two); One UI scrolls what does not fit in the chip. Each app can instead show its title, its
+   text or a number with its unit (`ChipRule`), chosen on its page or with **Adjust** on the relayed card.
 4. `LiveNotifications` posts a notification that meets the Live Update criteria (ongoing, titled,
    `ProgressStyle`/`BigTextStyle`, requests promotion). It also sets One UI's own extras so the Now Bar
    shows the **source app's icon and name** instead of LiveIsland's.
@@ -80,6 +81,9 @@ choose **Watch › Custom › Releases** at the top of this page on GitHub.
 6. Tapping it opens the source app. Up to two of the source's buttons (such as an inline reply) are carried
    over and still go to that app, and a Dismiss button hides the relayed copy until the source ends.
    When the source notification goes away, so does the relayed copy.
+7. The status bar shows one chip, the last activity added. An app set to **keep the chip** is added again when
+   another activity starts, so it keeps it. On Android 17, while several activities are going on, an extra
+   overview card (`Notification.MetricStyle`) lists each one's value.
 
 The decision logic in `core/` is plain Kotlin with no Android dependencies and is covered by unit tests.
 

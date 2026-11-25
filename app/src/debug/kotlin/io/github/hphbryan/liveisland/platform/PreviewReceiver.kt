@@ -28,6 +28,10 @@ import io.github.hphbryan.liveisland.core.SourcePolicy
  * `com.android.shell`, notifications from `adb shell cmd notification post` then go through the real
  * listener, for testing relaying, Dismiss and removal end to end. `--es dismiss <source key>` does what
  * the Dismiss button on that source's relayed copy does.
+ *
+ * `--ez relay true` sends it through [Relay] with the real settings instead, as if `pkg` had posted it
+ * (the app must be on): the chip choice, which app keeps the chip, the overview card, Adjust and Dismiss
+ * all apply. `--es end <id>` then ends that one, as if the app removed its notification.
  */
 class PreviewReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
@@ -44,8 +48,24 @@ class PreviewReceiver : BroadcastReceiver() {
             SettingsStore.get(context).setEnabled(pkg, false)
             return
         }
+        intent.getStringExtra("end")?.let { id ->
+            Relay.get(context).hide("preview-$id", ended = true)
+            return
+        }
         LiveNotifications.ensureChannel(context)
         val id = intent.getIntExtra("id", 0)
+        if (intent.getBooleanExtra("relay", false)) {
+            val pkg = intent.getStringExtra("pkg") ?: return
+            val snapshot = snapshot(id, pkg, intent.getStringExtra("title") ?: "Preview", intent.getStringExtra("text"), null, true, intent.getIntExtra("progress", 0))
+            val source = android.app.Notification.Builder(context, intent.getStringExtra("channel") ?: LiveNotifications.CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_island).build()
+            when (val d = Classifier.classify(snapshot, SettingsStore.get(context))) {
+                is Classifier.Decision.Relay -> Relay.get(context).show(d.content, source)
+                Classifier.Decision.Remove -> Relay.get(context).hide(snapshot.key, ended = false)
+            }
+            ActivityLog.record(snapshot.key, pkg, Classifier.explain(snapshot, SettingsStore.get(context)))
+            return
+        }
         val pkg = intent.getStringExtra("pkg") ?: "preview.app"
         val title = intent.getStringExtra("title") ?: "Preview"
         val text = intent.getStringExtra("text")
@@ -66,8 +86,8 @@ class PreviewReceiver : BroadcastReceiver() {
         context.getSystemService(NotificationManager::class.java).notify("preview", PREVIEW_ID_BASE + id, notification)
     }
 
-    private fun classify(id: Int, pkg: String, title: String, text: String?, sender: String?, ongoing: Boolean, progress: Int): LiveContent? {
-        val snapshot = NotificationSnapshot(
+    private fun snapshot(id: Int, pkg: String, title: String, text: String?, sender: String?, ongoing: Boolean, progress: Int) =
+        NotificationSnapshot(
             key = "preview-$id", packageName = pkg, channelId = "preview", category = null,
             title = title, text = text, bigText = null, isOngoing = ongoing, isGroupSummary = false,
             isPromoted = false, isSamsungLiveNotification = false, isMedia = false,
@@ -75,6 +95,9 @@ class PreviewReceiver : BroadcastReceiver() {
             showsChronometer = false, chronometerCountsDown = false, whenMillis = System.currentTimeMillis(),
             sender = sender, isConversation = sender != null,
         )
+
+    private fun classify(id: Int, pkg: String, title: String, text: String?, sender: String?, ongoing: Boolean, progress: Int): LiveContent? {
+        val snapshot = snapshot(id, pkg, title, text, sender, ongoing, progress)
         val everything = object : SourcePolicy {
             override fun isEnabled(packageName: String) = true
             override fun isFlashEnabled(packageName: String) = true

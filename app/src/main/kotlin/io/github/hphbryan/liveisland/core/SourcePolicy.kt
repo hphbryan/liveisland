@@ -25,6 +25,9 @@ interface SourcePolicy {
     /** People whose messages from this app are always shown, however the app is otherwise set up. */
     fun people(packageName: String): List<PersonRule> = emptyList()
 
+    /** What this app's chip shows; [ChipSource.AUTO] unless the user chose otherwise. */
+    fun chipSource(packageName: String): ChipSource = ChipSource.AUTO
+
     companion object {
         const val DEFAULT_FLASH_MILLIS = 8_000L
 

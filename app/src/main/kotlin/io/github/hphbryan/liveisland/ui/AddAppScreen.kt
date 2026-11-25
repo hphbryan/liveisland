@@ -34,6 +34,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
@@ -73,7 +74,11 @@ fun AddAppScreen(padding: PaddingValues, onOpenApp: (String) -> Unit) {
     val suggested = KnownApps.BY_CATEGORY.mapValues { (_, apps) -> apps.filter { it in installed } }.filterValues { it.isNotEmpty() }
     val seen = settings.seen.filter { it !in KnownApps.ALL }
     val listed = suggested.values.flatten().toSet() + seen
-    val onToggle = { pkg: String, on: Boolean -> store.setEnabled(pkg, on) }
+    val onToggle = { pkg: String, on: Boolean ->
+        store.setEnabled(pkg, on)
+        // A chat app shows nothing until people are picked, so go straight to where they are picked.
+        if (on && KnownApps.hasPeople(pkg) && settings.people[pkg].isNullOrEmpty()) onOpenApp(pkg)
+    }
 
     LazyColumn(contentPadding = padding) {
         item(key = "search", contentType = "search") {
@@ -124,6 +129,11 @@ fun AddAppScreen(padding: PaddingValues, onOpenApp: (String) -> Unit) {
                 appToggles(seen, settings, onToggle, onOpenApp)
             }
             item(key = "all", contentType = "header") { SectionHeader(stringResource(R.string.apps_all)) }
+            if (all == null) {
+                item(key = "loading", contentType = "loading") {
+                    Box(Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+                }
+            }
             appToggles(all.orEmpty().map { it.first }.filter { it !in listed }, settings, onToggle, onOpenApp)
         }
         item(key = "bottom", contentType = "spacer") { Spacer(Modifier.padding(bottom = 24.dp)) }
@@ -163,7 +173,7 @@ private fun CategoryHeader(category: AppCategory, onTurnOnAll: (() -> Unit)?) {
     }
     Box(Modifier.padding(start = 20.dp, bottom = 4.dp)) {
         val sample = when (category) {
-            AppCategory.AI -> stringResource(R.string.chip_replied_by, "ChatGPT")
+            AppCategory.AI -> stringResource(R.string.chip_replied)
             AppCategory.MESSAGING -> stringResource(
                 R.string.chip_message,
                 stringResource(R.string.example_sender),

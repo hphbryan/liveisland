@@ -1,5 +1,12 @@
 package io.github.hphbryan.liveisland.ui
 
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.material3.AssistChipDefaults
@@ -60,6 +67,8 @@ fun PeopleSection(packageName: String, settings: SettingsStore.State, store: Set
     // Index into [people] being edited; -1 adds a new person; null shows no dialog.
     var editing by rememberSaveable(packageName) { mutableStateOf<Int?>(null) }
     val seconds = settings.flashSecondsFor(packageName)
+    val undo = rememberUndo()
+    val removedText = stringResource(R.string.person_removed)
 
     Text(
         stringResource(if (people.isEmpty()) R.string.people_empty else R.string.people_desc),
@@ -92,7 +101,10 @@ fun PeopleSection(packageName: String, settings: SettingsStore.State, store: Set
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
-                    IconButton(onClick = { store.setPeople(packageName, people - person) }) {
+                    IconButton(onClick = {
+                        store.setPeople(packageName, people - person)
+                        undo(removedText.format(person.name)) { store.setPeople(packageName, people) }
+                    }) {
                         Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.people_remove, person.name))
                     }
                 }
@@ -175,6 +187,10 @@ private fun PersonDialog(
 ) {
     var name by rememberSaveable { mutableStateOf(initial?.name.orEmpty()) }
     var untilRead by rememberSaveable { mutableStateOf(initial?.untilRead ?: true) }
+    val save = { if (name.isNotBlank()) onSave(PersonRule(name.trim(), untilRead)) }
+    val focus = remember { FocusRequester() }
+    // A new person starts with typing, so the keyboard is already up.
+    if (initial == null) LaunchedEffect(Unit) { focus.requestFocus() }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(if (initial == null) R.string.people_add else R.string.person_edit)) },
@@ -186,7 +202,9 @@ private fun PersonDialog(
                     singleLine = true,
                     label = { Text(stringResource(R.string.person_name)) },
                     supportingText = { Text(stringResource(R.string.person_name_hint)) },
-                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                    keyboardActions = KeyboardActions(onDone = { save() }),
+                    modifier = Modifier.fillMaxWidth().focusRequester(focus),
                 )
                 if (suggestions.isNotEmpty()) {
                     Text(
@@ -223,7 +241,7 @@ private fun PersonDialog(
         },
         confirmButton = {
             TextButton(
-                onClick = { onSave(PersonRule(name.trim(), untilRead)) },
+                onClick = save,
                 enabled = name.isNotBlank(),
             ) { Text(stringResource(R.string.save)) }
         },

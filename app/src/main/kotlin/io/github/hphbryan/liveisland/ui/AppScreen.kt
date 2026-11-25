@@ -1,5 +1,11 @@
 package io.github.hphbryan.liveisland.ui
 
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.Spacer
 import io.github.hphbryan.liveisland.platform.ChannelInfo
@@ -55,6 +61,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.hphbryan.liveisland.R
+import io.github.hphbryan.liveisland.core.ChipSource
 import io.github.hphbryan.liveisland.core.KeywordFilter
 import io.github.hphbryan.liveisland.core.KnownApps
 import io.github.hphbryan.liveisland.core.SourcePolicy
@@ -127,6 +134,12 @@ fun AppScreen(packageName: String, padding: PaddingValues, onActivity: () -> Uni
             offerOneOffs = !messaging && !flash && recent.firstOrNull()?.outcome == "skip:not-ongoing",
             onShowOneOffs = { store.setFlash(packageName, true) },
             onAll = onActivity,
+        )
+        ChipSection(
+            source = settings.chipSources[packageName] ?: ChipSource.AUTO,
+            onSource = { store.setChipSource(packageName, it) },
+            first = packageName in settings.first,
+            onFirst = { store.setFirst(packageName, it) },
         )
         if (messaging) {
             SectionHeader(stringResource(R.string.people_title))
@@ -245,6 +258,46 @@ private fun RecentSection(
                     Text(stringResource(R.string.show_also_oneoff))
                 }
             }
+        }
+    }
+}
+
+/**
+ * What the status bar chip shows for this app, and whether its activity keeps the chip while other apps
+ * have something going on too (the status bar has room for one).
+ */
+@Composable
+private fun ChipSection(source: ChipSource, onSource: (ChipSource) -> Unit, first: Boolean, onFirst: (Boolean) -> Unit) {
+    SectionHeader(stringResource(R.string.chip_title))
+    Choices {
+        Choice(source == ChipSource.AUTO, stringResource(R.string.chip_auto), stringResource(R.string.chip_auto_desc)) { onSource(ChipSource.AUTO) }
+        Choice(source == ChipSource.TITLE, stringResource(R.string.chip_from_title), stringResource(R.string.chip_from_title_desc)) { onSource(ChipSource.TITLE) }
+        Choice(source == ChipSource.TEXT, stringResource(R.string.chip_from_text), stringResource(R.string.chip_from_text_desc)) { onSource(ChipSource.TEXT) }
+        Choice(source == ChipSource.NUMBER, stringResource(R.string.chip_from_number), stringResource(R.string.chip_from_number_desc)) { onSource(ChipSource.NUMBER) }
+    }
+    Surface(
+        shape = RoundedCornerShape(24.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 8.dp),
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 64.dp)
+                .toggleable(value = first, role = Role.Switch, onValueChange = onFirst)
+                .padding(start = 20.dp, end = 16.dp, top = 8.dp, bottom = 8.dp),
+        ) {
+            Column(Modifier.weight(1f)) {
+                Text(stringResource(R.string.chip_first), style = MaterialTheme.typography.bodyLarge)
+                Text(
+                    stringResource(R.string.chip_first_desc),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Spacer(Modifier.width(12.dp))
+            Switch(checked = first, onCheckedChange = null)
         }
     }
 }
@@ -372,6 +425,8 @@ private fun DurationChips(selected: Int, onSelect: (Int) -> Unit) {
 @Composable
 fun KeywordChips(words: List<String>, onChange: (List<String>) -> Unit) {
     var adding by rememberSaveable { mutableStateOf(false) }
+    val undo = rememberUndo()
+    val removedText = stringResource(R.string.keyword_removed)
     Column(Modifier.padding(horizontal = 20.dp)) {
         Text(
             stringResource(if (words.isEmpty()) R.string.keywords_none else R.string.keywords_desc),
@@ -381,12 +436,21 @@ fun KeywordChips(words: List<String>, onChange: (List<String>) -> Unit) {
         )
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             words.forEach { word ->
+                // Only the × removes a word, so a stray tap on the chip does not.
+                val remove = {
+                    onChange(words - word)
+                    undo(removedText.format(word)) { onChange(words) }
+                }
                 InputChip(
                     selected = false,
-                    onClick = { onChange(words - word) },
+                    onClick = {},
                     label = { Text(word) },
                     trailingIcon = {
-                        Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.keyword_remove, word), modifier = Modifier.size(18.dp))
+                        Icon(
+                            Icons.Filled.Close,
+                            contentDescription = stringResource(R.string.keyword_remove, word),
+                            modifier = Modifier.size(18.dp).clickable(role = Role.Button, onClick = remove),
+                        )
                     },
                 )
             }
@@ -399,6 +463,14 @@ fun KeywordChips(words: List<String>, onChange: (List<String>) -> Unit) {
     }
     if (adding) {
         var text by rememberSaveable { mutableStateOf("") }
+        val save = {
+            if (text.isNotBlank()) {
+                onChange(KeywordFilter.parse(KeywordFilter.format(words) + "," + text))
+                adding = false
+            }
+        }
+        val focus = remember { FocusRequester() }
+        LaunchedEffect(Unit) { focus.requestFocus() }
         AlertDialog(
             onDismissRequest = { adding = false },
             title = { Text(stringResource(R.string.keyword_add)) },
@@ -408,15 +480,14 @@ fun KeywordChips(words: List<String>, onChange: (List<String>) -> Unit) {
                     onValueChange = { text = it },
                     singleLine = true,
                     supportingText = { Text(stringResource(R.string.sheet_keywords_hint)) },
-                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                    keyboardActions = KeyboardActions(onDone = { save() }),
+                    modifier = Modifier.fillMaxWidth().focusRequester(focus),
                 )
             },
             confirmButton = {
                 TextButton(
-                    onClick = {
-                        onChange(KeywordFilter.parse(KeywordFilter.format(words) + "," + text))
-                        adding = false
-                    },
+                    onClick = save,
                     enabled = text.isNotBlank(),
                 ) { Text(stringResource(R.string.save)) }
             },

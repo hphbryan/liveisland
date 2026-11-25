@@ -5,6 +5,51 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-26
+
+### Added
+- **Choose what the chip shows**, per app: automatic, the title, the text, or a number with its unit
+  ("3 stops", "12 km"). When a notification has nothing for that choice, the automatic chip is shown and
+  Recent activity says so. Relayed activities have an **Adjust** button that opens the app's page, when the
+  source's own buttons leave room for it.
+- **Keep the chip for an app**: the status bar has room for one chip, and it goes to whatever was added last.
+  An app set to keep it gets it back when another activity starts; one-offs and messages still take it while
+  they last.
+- **Overview card** on Android 17: while two or more activities are going on, one more card lists each with its
+  value (minutes, percent, a running timer). It can be turned off in the menu.
+- **Suggestions from what you dismiss**: after dismissing an app's copies 5 times, or one kind of its
+  notifications 3 times, the home screen offers to stop showing that app or kind. Only counts are kept, on
+  this phone.
+- **Copy and paste settings** as text, for one app or all of them, to move them to another phone or share them.
+  People are never included.
+- About shows the developer, source code, release notes, privacy and license, and has **Report a problem**:
+  it copies the app and phone versions and opens GitHub issues.
+- Undo after removing a skipped word, a person, or clearing recent activity.
+- A banner on the home screen while notification samples are being recorded.
+- A setup step for when LiveIsland's own notification channel is turned off.
+
+### Changed
+- The progress bar shows what is moving: a car for rides, a bus for transit, a bag for deliveries and an
+  arrow for uploads, in the app's colour. Other apps get a plain bar; the app's icon is already on the card,
+  so it no longer rides the bar too. The bar and its marker stay the same colour in light and dark mode.
+- On Pixel and other phones without One UI, the status bar chip now shows its text. Those phones drop
+  chip text that does not fit whole and show only the icon, which happened to most relayed copies; there
+  the chip now shows just the value ("12 min", "45%") or the start of the message, measured to fit.
+- Pausing or resuming from the menu now says so, with Undo, and Paused shows even before setup is finished.
+- The Quick Settings tile opens LiveIsland when setup is not finished instead of doing nothing.
+- Setup buttons open the right settings page on more phones, and say so when a page cannot be opened. If
+  notifications were blocked for good, the button opens the notification settings instead of asking again.
+- The test notification lasts a minute and opens LiveIsland when tapped.
+- Settings are included in Android's backup and device transfer. Turning an app off keeps its settings and
+  forgets only its recent senders.
+- Skipped words are removed with their × only, so a stray tap no longer removes one.
+- Suggested apps leave out the phone's own system apps; apps no longer installed are hidden from the list.
+- The battery notice says where to find **Unrestricted**.
+- Dark mode no longer flashes white while the app opens.
+- Adding a person or a skipped word opens the keyboard right away, and its Done key saves.
+- The Samsung-only setup hint shows only on Samsung phones.
+- The AI assistants sample chip matches what is really shown: "Replied" next to the app's icon.
+
 ## [0.1.0] - 2026-11-25
 
 First public version.
@@ -58,5 +103,6 @@ First public version.
 - Pause everything from the menu or a Quick Settings tile.
 - Fixed teal-and-ink colour scheme; English and Traditional Chinese.
 
-[Unreleased]: https://github.com/hphbryan/liveisland/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/hphbryan/liveisland/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/hphbryan/liveisland/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/hphbryan/liveisland/releases/tag/v0.1.0

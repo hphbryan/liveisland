@@ -32,6 +32,7 @@ import io.github.hphbryan.liveisland.platform.ActivityLog
 /** Plain-language text for an [ActivityLog.Entry.outcome] from [packageName]. */
 fun outcomeText(outcome: String, packageName: String): Int = when (outcome) {
     "relay:ongoing" -> R.string.out_ongoing
+    "relay:ongoing-fallback", "relay:flash-fallback" -> R.string.out_chip_fallback
     "relay:flash" -> R.string.out_flash
     "relay:person" -> R.string.out_person
     "relay:person-until-read" -> R.string.out_person_until_read
@@ -60,6 +61,8 @@ fun isShown(outcome: String) = outcome.startsWith("relay:")
 @Composable
 fun ActivityScreen(padding: PaddingValues, onOpenApp: (String) -> Unit) {
     val entries by ActivityLog.entries.collectAsStateWithLifecycle()
+    val undo = rememberUndo()
+    val cleared = stringResource(R.string.activity_cleared)
 
     LazyColumn(contentPadding = padding) {
         item(key = "note", contentType = "note") {
@@ -70,7 +73,11 @@ fun ActivityScreen(padding: PaddingValues, onOpenApp: (String) -> Unit) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.weight(1f).padding(vertical = 8.dp),
                 )
-                if (entries.isNotEmpty()) TextButton(onClick = ActivityLog::clear) { Text(stringResource(R.string.activity_clear)) }
+                if (entries.isNotEmpty()) TextButton(onClick = {
+                    val old = entries
+                    ActivityLog.clear()
+                    undo(cleared) { ActivityLog.restore(old) }
+                }) { Text(stringResource(R.string.activity_clear)) }
             }
         }
         items(entries, key = { "${it.key}|${it.outcome}" }, contentType = { "entry" }) { e ->

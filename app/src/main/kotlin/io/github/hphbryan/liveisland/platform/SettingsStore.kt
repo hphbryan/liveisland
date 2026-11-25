@@ -4,6 +4,8 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.content.pm.ApplicationInfo
 import androidx.core.content.edit
+import io.github.hphbryan.liveisland.core.AppRules
+import io.github.hphbryan.liveisland.core.ChipSource
 import io.github.hphbryan.liveisland.core.KeywordFilter
 import io.github.hphbryan.liveisland.core.KnownApps
 import io.github.hphbryan.liveisland.core.PersonRule
@@ -39,6 +41,12 @@ class SettingsStore private constructor(context: Context) : SourcePolicy {
         val channelChoices: Map<String, Map<String, Boolean>> = emptyMap(),
         /** Apps the user said no to when the home screen suggested turning them on. */
         val suggestionsDismissed: Set<String> = emptySet(),
+        /** Per-app chip choice, for apps that changed it from automatic. */
+        val chipSources: Map<String, ChipSource> = emptyMap(),
+        /** Apps whose activity keeps the status bar chip while others are going on too. */
+        val first: Set<String> = emptySet(),
+        /** On Android 17, one more card that shows every activity at once when there are several. */
+        val overview: Boolean = true,
     ) {
         fun flashSecondsFor(packageName: String) =
             flashSeconds[packageName] ?: (SourcePolicy.DEFAULT_FLASH_MILLIS / 1000).toInt()
@@ -48,6 +56,8 @@ class SettingsStore private constructor(context: Context) : SourcePolicy {
     private val seenPrefs: SharedPreferences = context.getSharedPreferences("seen", Context.MODE_PRIVATE)
     private val recentPrefs: SharedPreferences = context.getSharedPreferences("recent_people", Context.MODE_PRIVATE)
     private val channelPrefs: SharedPreferences = context.getSharedPreferences("channels", Context.MODE_PRIVATE)
+    /** About this phone only (what Android was asked), so not backed up or moved to a new phone. */
+    private val devicePrefs: SharedPreferences = context.getSharedPreferences("device", Context.MODE_PRIVATE)
     private val packageManager = context.packageManager
     /** Whether a package came with the phone; asked once per package. Declared before [_state], which uses it. */
     private val preinstalled = java.util.concurrent.ConcurrentHashMap<String, Boolean>()
@@ -75,6 +85,61 @@ class SettingsStore private constructor(context: Context) : SourcePolicy {
     override fun isPaused() = _state.value.paused
 
     override fun channelChoice(packageName: String, channelId: String) = _state.value.channelChoices[packageName]?.get(channelId)
+
+    override fun chipSource(packageName: String) = _state.value.chipSources[packageName] ?: ChipSource.AUTO
+
+    fun isFirst(packageName: String) = packageName in _state.value.first
+
+    fun setChipSource(packageName: String, source: ChipSource) = prefs.edit {
+        if (source == ChipSource.AUTO) remove(PREFIX_CHIP + packageName) else putString(PREFIX_CHIP + packageName, source.key)
+    }
+
+    fun setFirst(packageName: String, on: Boolean) = editSet(KEY_FIRST, emptySet(), packageName, on)
+
+    fun setOverview(on: Boolean) = prefs.edit { putBoolean(KEY_OVERVIEW, on) }
+
+    /** [packageName]'s choices as [AppRules], to share. People are left out: their names are personal. */
+    fun rulesOf(packageName: String): AppRules {
+        val st = _state.value
+        val ownWords = prefs.getString(PREFIX_KEYWORDS + packageName, null)
+        return AppRules(
+            packageName = packageName,
+            oneOffs = packageName in st.flash,
+            seconds = st.flashSeconds[packageName],
+            chip = chipSource(packageName),
+            first = packageName in st.first,
+            skip = ownWords?.let(KeywordFilter::parse),
+            types = st.channelChoices[packageName].orEmpty(),
+        )
+    }
+
+    /** Turns the app in [rules] on and applies its choices, in one write. */
+    fun apply(rules: AppRules) {
+        val p = rules.packageName
+        val flash = (prefs.getStringSet(KEY_FLASH, null) ?: KnownApps.FLASH_BY_DEFAULT).toMutableSet()
+        rules.oneOffs?.let { if (it) flash += p else flash -= p }
+        val first = prefs.getStringSet(KEY_FIRST, null).orEmpty().toMutableSet()
+        if (rules.first) first += p else first -= p
+        val types = _state.value.channelChoices[p].orEmpty() + rules.types
+        prefs.edit {
+            putStringSet(KEY_ENABLED, prefs.getStringSet(KEY_ENABLED, null).orEmpty() + p)
+            // Pasted choices replace the starting setup a first turn-on would apply.
+            putStringSet(KEY_EVER_ENABLED, prefs.getStringSet(KEY_EVER_ENABLED, null).orEmpty() + p)
+            putStringSet(KEY_FLASH, flash)
+            putStringSet(KEY_FIRST, first)
+            rules.seconds?.let { putInt(PREFIX_FLASH_SECONDS + p, it) }
+            if (rules.chip == ChipSource.AUTO) remove(PREFIX_CHIP + p) else putString(PREFIX_CHIP + p, rules.chip.key)
+            rules.skip?.let { putString(PREFIX_KEYWORDS + p, KeywordFilter.format(it)) }
+            if (types.isNotEmpty()) {
+                putStringSet(PREFIX_CHANNELS + p, types.mapTo(HashSet()) { (id, v) -> (if (v) "1:" else "0:") + id })
+            }
+        }
+    }
+
+    /** Whether the notification permission has been asked for, to tell "not asked yet" from "refused for good". */
+    fun askedForNotifications() = devicePrefs.getBoolean(KEY_ASKED_POST, false)
+
+    fun markAskedForNotifications() = devicePrefs.edit { putBoolean(KEY_ASKED_POST, true) }
 
     fun setPaused(paused: Boolean) = prefs.edit { putBoolean(KEY_PAUSED, paused) }
 
@@ -134,7 +199,8 @@ class SettingsStore private constructor(context: Context) : SourcePolicy {
 
     /**
      * Turning an app on for the first time applies its starting setup (e.g. brief display for AI replies);
-     * later changes are the user's. Turning an app off forgets its recent senders.
+     * later changes are the user's. Turning an app off forgets its recent senders (names of people), but keeps
+     * the kinds of notifications it was seen with, so the choices made for them still show when it is back on.
      */
     fun setEnabled(packageName: String, on: Boolean) {
         val firstTime = on && packageName !in prefs.getStringSet(KEY_EVER_ENABLED, null).orEmpty()
@@ -143,10 +209,7 @@ class SettingsStore private constructor(context: Context) : SourcePolicy {
             editSet(KEY_EVER_ENABLED, emptySet(), packageName, true)
             if (KnownApps.flashByDefault(packageName)) setFlash(packageName, true)
         }
-        if (!on) {
-            recentPrefs.edit { remove(packageName) }
-            channelPrefs.edit { remove(packageName) }
-        }
+        if (!on) recentPrefs.edit { remove(packageName) }
     }
 
     fun setFlash(packageName: String, on: Boolean) = editSet(KEY_FLASH, KnownApps.FLASH_BY_DEFAULT, packageName, on)
@@ -181,7 +244,7 @@ class SettingsStore private constructor(context: Context) : SourcePolicy {
             runCatching {
                 packageManager.getApplicationInfo(packageName, 0).flags and
                     (ApplicationInfo.FLAG_SYSTEM or ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) != 0
-            }.getOrDefault(false)
+            }.getOrDefault(true) // Uninstalled: nothing to suggest.
         }
 
     private fun load(): State {
@@ -223,6 +286,12 @@ class SettingsStore private constructor(context: Context) : SourcePolicy {
                 }
                 .toMap(),
             suggestionsDismissed = prefs.getStringSet(KEY_SUGGESTIONS_DISMISSED, null).orEmpty().toSet(),
+            chipSources = all.entries
+                .filter { it.key.startsWith(PREFIX_CHIP) }
+                .mapNotNull { (k, v) -> (v as? String)?.let { k.removePrefix(PREFIX_CHIP) to ChipSource.of(it) } }
+                .toMap(),
+            first = prefs.getStringSet(KEY_FIRST, null).orEmpty().toSet(),
+            overview = prefs.getBoolean(KEY_OVERVIEW, true),
         )
     }
 
@@ -237,7 +306,11 @@ class SettingsStore private constructor(context: Context) : SourcePolicy {
         private const val PREFIX_CHANNELS = "channels:"
         private const val KEY_PAUSED = "paused"
         private const val KEY_SHARED_KEYWORDS = "shared_keywords"
+        private const val KEY_ASKED_POST = "asked_post_notifications"
         private const val KEY_SUGGESTIONS_DISMISSED = "suggestions_dismissed"
+        private const val PREFIX_CHIP = "chip:"
+        private const val KEY_FIRST = "first_packages"
+        private const val KEY_OVERVIEW = "overview"
         private const val MAX_CHANNELS = 30
         private const val MAX_RECENT_PEOPLE = 20
         private const val SEEN_WRITE_INTERVAL_MS = 60_000L

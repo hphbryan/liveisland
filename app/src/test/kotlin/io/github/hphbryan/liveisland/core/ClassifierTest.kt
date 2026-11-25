@@ -195,4 +195,20 @@ class ClassifierTest {
 
     @Test fun `ongoing content has no timeout`() =
         assertEquals(null, relayed(Classifier.classify(snapshot(), enabled)).timeoutMillis)
+
+    @Test fun `the user's chip choice replaces the automatic one`() {
+        val policy = FakePolicy(enabled = setOf("com.example.delivery"), chips = mapOf("com.example.delivery" to ChipSource.TITLE))
+        val s = snapshot(title = "On the way")
+        val c = relayed(Classifier.classify(s, policy))
+        assertEquals(ChipText.Headline("On the way"), c.chip)
+        assertEquals(null, c.chipDetail)
+        assertEquals("relay:ongoing", Classifier.explain(s, policy))
+    }
+
+    @Test fun `a chip choice with nothing to show falls back and says so`() {
+        val policy = FakePolicy(enabled = setOf("com.example.delivery"), chips = mapOf("com.example.delivery" to ChipSource.NUMBER))
+        val s = snapshot(title = "Preparing your order", text = "Soon")
+        assertEquals(ChipText.Headline("Preparing your…"), relayed(Classifier.classify(s, policy)).chip)
+        assertEquals("relay:ongoing-fallback", Classifier.explain(s, policy))
+    }
 }

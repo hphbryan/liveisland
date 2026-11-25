@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark mode: a dark window, so opening the app does not flash white. -->
+    <style name="Theme.LiveIsland" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">#FF0F1211</item>
+    </style>
+</resources>

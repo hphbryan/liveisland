@@ -4,14 +4,13 @@
     <string name="tagline">把其他 App 的進行中通知，轉成狀態列膠囊與 Samsung Now Bar 的即時通知。</string>
 
     <string name="channel_live_name">即時通知</string>
-    <string name="channel_live_description">轉接的進行中活動與短暫顯示的回覆</string>
+    <string name="channel_live_description">轉接的進行中活動與一次性通知</string>
 
     <string name="chip_minutes">%1$d 分</string>
     <string name="chip_replied">已回覆</string>
     <string name="chip_new">新通知</string>
-    <string name="chip_replied_by">%1$s 已回覆</string>
     <string name="chip_message">%1$s：%2$s</string>
-    <string name="chip_arriving">即將進站</string>
+    <string name="chip_arriving">即將抵達</string>
     <plurals name="chip_stops">
         <item quantity="other">%1$d 站</item>
     </plurals>
@@ -26,16 +25,16 @@
     <string name="setup_promoted_samsung">Samsung 手機若找不到這個開關，請到「設定 › 開發人員選項」打開「所有 App 的即時通知」。</string>
     <string name="action_allow">允許</string>
     <string name="action_open">開啟</string>
-    <string name="action_dismiss">關閉</string>
+    <string name="action_dismiss">移除</string>
     <string name="test_title">外送員在路上</string>
-    <string name="test_text">預計 5 分鐘後送達</string>
+    <string name="test_text">預計 1 分鐘後送達</string>
     <plurals name="status_steps_left">
         <item quantity="other">還差 %1$d 步</item>
     </plurals>
-    <string name="status_battery">電池最佳化可能讓轉接中斷</string>
+    <string name="status_battery">電池最佳化可能讓轉接中斷。請在「應用程式資訊」開啟「電池」，選「不受限制」。</string>
     <string name="action_test">送一則測試</string>
     <string name="action_adjust">調整</string>
-    <string name="test_sent">已發送測試，看看狀態列與 Now Bar。</string>
+    <string name="test_sent">已發送測試，看看狀態列。</string>
     <string name="more_options">更多選項</string>
 
 
@@ -57,7 +56,7 @@
     <string name="out_person">已顯示：指定的人</string>
     <string name="out_person_until_read">已顯示到讀取：指定的人</string>
     <string name="out_app_off">沒顯示：這個 App 沒開</string>
-    <string name="out_not_ongoing">沒顯示：一般通知（可開「短暫顯示」）</string>
+    <string name="out_not_ongoing">沒顯示：一次性通知（可打開「也顯示一次性通知」）</string>
     <string name="out_not_picked">沒顯示：不是指定的人</string>
     <string name="out_keyword">沒顯示：含有略過的字詞</string>
     <string name="out_hidden">沒顯示：在系統設定裡被設成最小化或暫停</string>
@@ -86,7 +85,7 @@
     <string name="person_name">名稱</string>
     <string name="person_name_hint">和通知上顯示的一樣：人名或群組名稱</string>
     <string name="person_recent">最近傳訊息的對象</string>
-    <string name="person_until_read_desc">讀訊息之前都留在 Now Bar；關閉則只顯示 %1$d 秒。</string>
+    <string name="person_until_read_desc">讀訊息之前都會一直顯示；關閉則只顯示 %1$d 秒。</string>
     <string name="save">儲存</string>
 
     <string name="app_mode_ongoing">進行中時顯示</string>
@@ -94,7 +93,7 @@
     <string name="app_gemini_only">只轉接 Gemini 回覆</string>
     <string name="app_settings">%1$s 設定</string>
     <string name="app_live_now">現在正在島上</string>
-    <string name="app_recent_title">最近</string>
+    <string name="app_recent_title">最近活動</string>
     <string name="app_recent_all">全部</string>
     <string name="app_recent_none">還沒收到這個 App 的通知。它的下一則通知會出現在這裡，並說明怎麼處理、為什麼。</string>
     <string name="app_recent_oneoff_hint">它最近一則是一次性通知，目前這個 App 設定成不顯示。</string>
@@ -108,7 +107,7 @@
     <string name="example_transfer" formatted="false">45% 照片備份</string>
     <string name="example_charging" formatted="false">80% 充電中</string>
     <plurals name="app_mode_flash">
-        <item quantity="other">新通知 %1$d 秒</item>
+        <item quantity="other">一次性通知顯示 %1$d 秒</item>
     </plurals>
     <string name="duration_seconds">%1$d 秒</string>
     <string name="sheet_keywords_hint">用逗號分隔，例如：優惠, 折扣, 廣告</string>
@@ -137,9 +136,9 @@
     <string name="about_title">關於</string>
     <string name="about_version">版本 %1$s</string>
     <string name="about_privacy_title">隱私</string>
-    <string name="about_privacy">即時島沒有網路權限、沒有分析追蹤、沒有廣告。讀取通知只為了決定要顯示什麼，除非你自己分享樣本，否則任何資料都不會離開手機。</string>
+    <string name="about_privacy">沒有網路權限、沒有分析追蹤、沒有廣告。通知只在手機上讀取，用來決定要顯示什麼。會留在手機上的有：最近傳訊的人名（方便挑選聯絡人），以及只在你記錄樣本時的通知內容。關閉該 App 或清除樣本就會刪掉。</string>
     <string name="about_license_title">授權</string>
-    <string name="about_license">Apache License 2.0。使用 Jetpack Compose 與 AndroidX（Apache License 2.0）。</string>
+    <string name="about_license">Apache License 2.0。使用的 Jetpack Compose 與 AndroidX 也是 Apache License 2.0。</string>
     <string name="about_limits_title">已知限制</string>
     <string name="about_limits">來源 App 的原通知仍會留在通知欄。使用自訂版面的通知無法讀取。Samsung 展開卡片的標頭一律顯示發送者為即時島。</string>
 
@@ -150,7 +149,7 @@
     <plurals name="apps_on_count">
         <item quantity="other">已開啟 %1$d 個 App</item>
     </plurals>
-    <string name="island_showing">%1$s 正在即時島上</string>
+    <string name="island_showing">%1$s 正顯示在狀態列</string>
     <string name="island_test">這是測試，1 分鐘後會自動消失。</string>
     <string name="island_idle">待命中</string>
     <string name="island_idle_desc">開啟的 App 有進行中的事時，會出現在這裡和狀態列。</string>
@@ -160,7 +159,7 @@
     <string name="clear_search">清除搜尋</string>
     <string name="apps_all">所有 App</string>
     <string name="app_preview_generic">會顯示這個 App 通知上的文字。</string>
-    <string name="app_main_switch">在即時島顯示</string>
+    <string name="app_main_switch">顯示在狀態列</string>
     <string name="app_off_hint">開啟後，這個 App 正在進行的事會顯示在狀態列膠囊和 Now Bar，直到結束。</string>
     <string name="app_off_hint_messaging">開啟後，可以指定哪些人的訊息一定會顯示在狀態列膠囊和 Now Bar。</string>
     <string name="others_title">其他人的訊息</string>
@@ -175,7 +174,7 @@
     <string name="show_also_oneoff_desc">例如「已送達」或 AI 回覆，顯示幾秒後自動收起。</string>
     <string name="keywords_title">略過的字詞</string>
     <string name="keywords_none">沒有略過的字詞。</string>
-    <string name="keywords_desc">含有這些字詞的通知不會顯示。點一下就移除。</string>
+    <string name="keywords_desc">含有這些字詞的通知不會顯示。點 × 即可移除。</string>
     <string name="keyword_add">新增字詞</string>
     <string name="keyword_remove">移除 %1$s</string>
     <string name="people_empty">這些人的訊息一定會顯示，例如家人或另一半。</string>
@@ -189,7 +188,7 @@
     <plurals name="shared_keywords_count">
         <item quantity="other">另外也會略過 %1$d 個所有 App 共用的字詞。</item>
     </plurals>
-    <string name="shared_keywords_edit">共用字詞</string>
+    <string name="shared_keywords_edit">編輯共用字詞</string>
     <plurals name="shared_keywords_add_common">
         <item quantity="other">加入 %1$d 個常見廣告字詞</item>
     </plurals>
@@ -203,11 +202,86 @@
     <string name="island_paused">已暫停</string>
     <string name="island_paused_desc">恢復之前，島上不會顯示任何東西。也可以從快速設定的按鈕暫停或恢復。</string>
     <string name="action_pause">暫停即時島</string>
-    <string name="action_resume">恢復</string>
+    <string name="action_resume">恢復即時島</string>
     <string name="suggest_title">%1$s 最近有進行中的通知</string>
     <string name="suggest_desc">要顯示在島上嗎？</string>
     <string name="suggest_yes">打開</string>
     <string name="suggest_no">不用</string>
     <string name="tile_on">開啟中</string>
     <string name="tile_paused">已暫停</string>
+    <string name="about_developer">開發者</string>
+    <string name="about_source">原始碼</string>
+    <string name="about_source_desc">即時島在 GitHub 上開放原始碼。</string>
+    <string name="about_changes">更新內容</string>
+    <string name="about_changes_desc">各版本與它們的變更。</string>
+    <string name="about_report">回報問題</string>
+    <string name="about_report_desc">開啟 GitHub 問題回報。會先複製 App 與手機的版本，方便貼進回報裡。</string>
+    <string name="about_copy_info">複製 App 與手機資訊</string>
+    <string name="about_copy_info_desc">App 版本、Android 版本與手機型號，不含任何個人資料。</string>
+    <string name="about_copied">已複製 App 與手機資訊</string>
+    <string name="paused_done">已暫停即時島，恢復之前不會顯示任何東西。</string>
+    <string name="resumed_done">已恢復即時島</string>
+    <string name="undo">復原</string>
+    <string name="test_sent_samsung">已發送測試，看看狀態列和鎖定畫面的 Now Bar。</string>
+    <string name="setup_open_failed">這支手機沒有這個設定頁，請到「設定 › 應用程式 › 即時島」手動調整。</string>
+    <string name="setup_channel">打開「即時通知」</string>
+    <string name="setup_channel_desc">即時島的「即時通知」類別在系統設定裡被關掉了，所以什麼都不會出現。</string>
+    <string name="tile_setup">尚未完成設定</string>
+    <string name="activity_cleared">已清除最近活動</string>
+    <string name="keyword_removed">已移除「%1$s」</string>
+    <string name="person_removed">已移除 %1$s</string>
+    <string name="recording_banner">正在記錄通知樣本。樣本只存在這支手機，直到你分享或清除。</string>
+    <string name="recording_stop">停止</string>
+
+    <!-- What the chip shows, and which app keeps it -->
+    <string name="chip_title">狀態列顯示</string>
+    <string name="chip_auto">自動</string>
+    <string name="chip_auto_desc">有時間、距離或百分比就顯示，沒有則顯示標題。</string>
+    <string name="chip_from_title">標題</string>
+    <string name="chip_from_title_desc">通知的第一行，照 App 寫的顯示。</string>
+    <string name="chip_from_text">內文</string>
+    <string name="chip_from_text_desc">標題下面那一行。</string>
+    <string name="chip_from_number">數字</string>
+    <string name="chip_from_number_desc">有單位的數字，例如「3 站」、「12 km」；都沒有單位就用第一個數字。</string>
+    <string name="chip_first">狀態列優先顯示這個 App</string>
+    <string name="chip_first_desc">狀態列一次只顯示一個。同時有其他進行中的事時，優先顯示這個。</string>
+    <string name="out_chip_fallback">已顯示：通知裡沒有你選的內容，改用自動</string>
+    <string name="action_adjust_display">調整顯示</string>
+
+    <!-- Android 17 overview of several activities -->
+    <plurals name="overview_title">
+        <item quantity="other">%1$d 件進行中</item>
+    </plurals>
+    <string name="metric_minutes">分</string>
+    <string name="overview_setting">總覽卡片</string>
+
+    <!-- Suggestions from what was dismissed -->
+    <plurals name="less_app_title">
+        <item quantity="other">你已移除 %1$s %2$d 次</item>
+    </plurals>
+    <string name="less_app_desc">不要再顯示在島上了嗎？</string>
+    <string name="less_app_yes">關閉</string>
+    <plurals name="less_type_title">
+        <item quantity="other">你已移除 %1$s 的「%2$s」%3$d 次</item>
+    </plurals>
+    <string name="less_type_desc">不再顯示這類通知嗎？其他類型照常顯示。</string>
+    <string name="less_type_yes">不再顯示</string>
+    <string name="less_no">繼續顯示</string>
+
+    <!-- Sharing choices as text -->
+    <string name="rules_copy">複製設定</string>
+    <string name="rules_copy_all">複製所有設定</string>
+    <string name="rules_paste">貼上設定</string>
+    <string name="rules_none_on">還沒有開啟任何 App。</string>
+    <plurals name="rules_copied">
+        <item quantity="other">已複製 %1$d 個 App 的設定，不含指定的人。</item>
+    </plurals>
+    <string name="rules_paste_none">請先複製即時島的設定，再到這裡貼上。</string>
+    <string name="rules_paste_missing">這份設定裡的 App 都沒有安裝在這支手機。</string>
+    <plurals name="rules_pasted">
+        <item quantity="other">已套用 %1$d 個 App 的設定</item>
+    </plurals>
+    <plurals name="rules_pasted_some">
+        <item quantity="other">已套用 %1$d 個 App 的設定，%2$d 個沒有安裝</item>
+    </plurals>
 </resources>

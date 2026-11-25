@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Window theme only; the UI itself is themed by Compose (ui/Theme.kt). -->
-    <style name="Theme.LiveIsland" parent="android:Theme.Material.Light.NoActionBar" />
+    <!-- Window theme only; the UI itself is themed by Compose (ui/Theme.kt). The window colour matches it,
+         so nothing flashes before Compose draws. -->
+    <style name="Theme.LiveIsland" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">#FFF7F9F8</item>
+    </style>
 </resources>

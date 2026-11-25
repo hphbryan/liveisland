@@ -20,8 +20,8 @@ android {
         // Live Updates (promoted ongoing notifications) only exist on Android 16 / One UI 8 and later.
         minSdk = 36
         targetSdk = 37
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = 2
+        versionName = "0.2.0"
     }
 
     signingConfigs {

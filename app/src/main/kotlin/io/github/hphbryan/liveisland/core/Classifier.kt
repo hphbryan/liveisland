@@ -36,15 +36,26 @@ object Classifier {
         userSkip(s, policy)?.let { return "skip:$it" }
         val person = PersonMatcher.match(policy.people(s.packageName), s)
         return when {
-            isOngoingActivity(s) -> "relay:ongoing"
+            // The user's chip choice found nothing in this one: say so, as the automatic chip is shown instead.
+            isOngoingActivity(s) -> if (usesFallbackChip(s, policy)) "relay:ongoing-fallback" else "relay:ongoing"
             // Something in progress stays on the island quietly; a new message or reply would interrupt.
             !s.interruptsNow && (person != null || policy.isFlashEnabled(s.packageName)) -> "skip:dnd"
             person != null && person.untilRead -> "relay:person-until-read"
             person != null -> "relay:person"
-            policy.isFlashEnabled(s.packageName) -> "relay:flash"
+            policy.isFlashEnabled(s.packageName) -> if (usesFallbackChip(s, policy)) "relay:flash-fallback" else "relay:flash"
             else -> "skip:not-ongoing"
         }
     }
+
+    /** True if the app has a chip choice that [s] has nothing for (e.g. no number in it). */
+    private fun usesFallbackChip(s: NotificationSnapshot, policy: SourcePolicy): Boolean {
+        val source = policy.chipSource(s.packageName)
+        if (source == ChipSource.AUTO || s.title.isNullOrBlank()) return false
+        return ChipRule.pick(source, s.title.trim(), chipText(s)) == null
+    }
+
+    /** The line under the title that a chip choice reads: the expanded text if the app gives one. */
+    private fun chipText(s: NotificationSnapshot) = (s.bigText ?: s.text)?.trim()?.ifEmpty { null }
 
     /**
      * A permanent "running in the background" notice: the app marks it as a service and it shows no
@@ -74,18 +85,18 @@ object Classifier {
     fun classify(s: NotificationSnapshot, policy: SourcePolicy): Decision {
         // An update that is now left out (e.g. a ride that turned into an ad) removes the copy.
         if (!isCandidate(s) || userSkip(s, policy) != null) return Decision.Remove
-        if (isOngoingActivity(s)) return Decision.Relay(ongoingContent(s))
+        if (isOngoingActivity(s)) return Decision.Relay(ongoingContent(s, policy.chipSource(s.packageName)))
         if (!s.interruptsNow) return Decision.Remove
         val flashMillis = policy.flashDurationMillis(s.packageName)
         PersonMatcher.match(policy.people(s.packageName), s)?.let { return Decision.Relay(personContent(s, it, flashMillis)) }
         return when {
-            policy.isFlashEnabled(s.packageName) -> Decision.Relay(flashContent(s, flashMillis))
+            policy.isFlashEnabled(s.packageName) -> Decision.Relay(flashContent(s, flashMillis, policy.chipSource(s.packageName)))
             // Was ongoing before and has now ended (e.g. "Delivered"): drop the relayed copy.
             else -> Decision.Remove
         }
     }
 
-    private fun ongoingContent(s: NotificationSnapshot): LiveContent {
+    private fun ongoingContent(s: NotificationSnapshot, source: ChipSource): LiveContent {
         val progress = when {
             // In whole percent: a download counting bytes would otherwise re-post for changes no one can see.
             s.progressMax > 0 -> LiveContent.Progress.Determinate(
@@ -94,16 +105,18 @@ object Classifier {
             s.progressIndeterminate -> LiveContent.Progress.Indeterminate
             else -> null
         }
-        val text = (s.bigText ?: s.text)?.trim()?.ifEmpty { null }
+        val text = chipText(s)
         val title = s.title!!.trim()
-        val value = ChipTextExtractor.extract(title, text, progress)
+        // The user's choice first; if it finds nothing, a value; with no value but a running timer, leave the
+        // chip to the timer.
+        val chosen = ChipRule.pick(source, title, text)
+        val value = if (chosen == null) ChipTextExtractor.extract(title, text, progress) else null
         return LiveContent(
             sourceKey = s.key,
             packageName = s.packageName,
             title = title,
             text = text,
-            // With no value but a running timer, leave the chip to the timer.
-            chip = value ?: if (s.showsChronometer) null else ChipText.Headline(TextShortener.fit(title)),
+            chip = chosen ?: value ?: if (s.showsChronometer) null else ChipText.Headline(TextShortener.fit(title)),
             chipDetail = value?.let { chipDetail(it, title, text) },
             progress = progress,
             chronometer = if (s.showsChronometer) LiveContent.Chronometer(s.whenMillis, s.chronometerCountsDown) else null,
@@ -112,12 +125,12 @@ object Classifier {
         )
     }
 
-    private fun flashContent(s: NotificationSnapshot, timeoutMillis: Long): LiveContent = LiveContent(
+    private fun flashContent(s: NotificationSnapshot, timeoutMillis: Long, source: ChipSource): LiveContent = LiveContent(
         sourceKey = s.key,
         packageName = s.packageName,
         title = s.title!!.trim(),
         text = s.text?.trim()?.ifEmpty { null },
-        chip = when {
+        chip = ChipRule.pick(source, s.title!!.trim(), chipText(s)) ?: when {
             s.packageName in KnownApps.AI_ASSISTANTS -> ChipText.Replied
             s.isConversation && !s.sender.isNullOrBlank() -> message(s.sender, s.text)
             else -> ChipText.Headline(TextShortener.fit(listOfNotNull(s.title, s.text).joinToString(" ")))

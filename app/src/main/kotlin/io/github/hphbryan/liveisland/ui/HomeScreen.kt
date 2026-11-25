@@ -6,7 +6,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.Arrangement
 import android.Manifest
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
+import android.widget.Toast
+import android.content.ContextWrapper
+import android.app.Activity
 import android.graphics.drawable.Icon
 import android.os.Handler
 import android.os.Looper
@@ -62,8 +67,10 @@ import io.github.hphbryan.liveisland.core.KnownApps
 import io.github.hphbryan.liveisland.core.LiveContent
 import io.github.hphbryan.liveisland.core.TextShortener
 import io.github.hphbryan.liveisland.platform.ActivityLog
+import io.github.hphbryan.liveisland.platform.Device
 import io.github.hphbryan.liveisland.platform.DismissReceiver
 import io.github.hphbryan.liveisland.platform.LiveNotifications
+import io.github.hphbryan.liveisland.platform.Habits
 import io.github.hphbryan.liveisland.platform.Relay
 import io.github.hphbryan.liveisland.platform.RelayListenerService
 import io.github.hphbryan.liveisland.platform.SettingsStore
@@ -75,6 +82,7 @@ private class SetupActions(
     val onListener: () -> Unit,
     val onPost: () -> Unit,
     val onPromotion: () -> Unit,
+    val onChannel: () -> Unit,
     val onAppInfo: () -> Unit,
     val onBattery: () -> Unit,
     val onTest: () -> Unit,
@@ -97,6 +105,8 @@ fun HomeScreen(
     val settings by store.state.collectAsStateWithLifecycle()
     val shown by Relay.shown.collectAsStateWithLifecycle()
     val entries by ActivityLog.entries.collectAsStateWithLifecycle()
+    val habits = remember { Habits.get(context) }
+    val habitCounts by habits.state.collectAsStateWithLifecycle()
     var setup by remember { mutableStateOf(SetupStatus.read(context)) }
     val notificationPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
         setup = SetupStatus.read(context)
@@ -109,41 +119,98 @@ fun HomeScreen(
         onPauseOrDispose { }
     }
 
+    // Opens the first settings page this phone has; if it has none, says where to go by hand.
+    val openFailed = stringResource(R.string.setup_open_failed)
+    fun open(vararg intents: android.content.Intent) {
+        if (!SetupIntents.open(context, *intents)) Toast.makeText(context, openFailed, Toast.LENGTH_LONG).show()
+    }
     val actions = SetupActions(
-        onListener = { context.startActivity(SetupIntents.listenerSettings(context)) },
-        onPost = { notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS) },
-        onPromotion = { SetupIntents.promotionSettings(context)?.let(context::startActivity) },
-        onAppInfo = { context.startActivity(SetupIntents.appInfo(context)) },
-        onBattery = { context.startActivity(SetupIntents.batterySettings()) },
+        onListener = { open(SetupIntents.listenerSettings(context), SetupIntents.appInfo(context)) },
+        onPost = {
+            // After two refusals Android stops showing the dialog, and asking again does nothing: go to the
+            // app's notification settings instead.
+            val activity = context.findActivity()
+            val blocked = store.askedForNotifications() && activity != null &&
+                !activity.shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)
+            if (blocked) {
+                open(SetupIntents.notificationSettings(context), SetupIntents.appInfo(context))
+            } else {
+                store.markAskedForNotifications()
+                notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        },
+        onPromotion = { open(SetupIntents.promotionSettings(context), SetupIntents.notificationSettings(context)) },
+        onChannel = { open(SetupIntents.channelSettings(context), SetupIntents.notificationSettings(context)) },
+        onAppInfo = { open(SetupIntents.appInfo(context)) },
+        // App info has the Battery page with "Unrestricted"; the system-wide list is harder to find it in.
+        onBattery = { open(SetupIntents.appInfo(context), SetupIntents.batterySettings()) },
         onTest = {
             postTestNotification(context)
             onTestSent()
         },
     )
     // Suggested apps in their usual order, then any others the user added.
-    val on = KnownApps.ALL.filter { it in settings.enabled } + (settings.enabled - KnownApps.ALL.toSet()).sorted()
+    // An app uninstalled while on is left out (it comes back as it was if reinstalled).
+    val installedOn = remember(settings.enabled) { installedPackages(context, settings.enabled) }
+    val on = KnownApps.ALL.filter { it in installedOn } + (installedOn - KnownApps.ALL.toSet()).sorted()
     val livePackages = shown.mapTo(HashSet()) { it.packageName }
 
     LazyColumn(contentPadding = padding) {
         item(key = "island", contentType = "island") {
             Box(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
                 when {
-                    !setup.ready -> SetupIsland(setup, actions)
+                    // Paused is the user's own choice, so it shows even before setup is done.
                     settings.paused -> PausedIsland { setPaused(context, store, false) }
-                    shown.isNotEmpty() -> LiveIsland(shown, setup, actions)
+                    !setup.ready -> SetupIsland(setup, actions)
+                    // Like the status bar: an app put first leads while it has something going on.
+                    shown.isNotEmpty() -> LiveIsland(shown.sortedByDescending { it.packageName in settings.first }, setup, actions)
                     else -> IdleIsland(appsOn = on.size, setup, actions)
                 }
             }
         }
+        // Recording keeps notification text on the phone, so it is never on without the user seeing it.
+        if (settings.recordSamples) {
+            item(key = "recording", contentType = "recording") {
+                RecordingBanner(onStop = { store.setRecordSamples(false) })
+            }
+        }
+        // Something the user keeps dismissing: offer to stop showing it. One suggestion at a time.
+        val less = lessSuggestion(habitCounts, settings)
         // An app seen posting something in progress that is not on yet: one tap to turn it on.
         val suggestion = settings.seen.firstOrNull {
             it !in settings.enabled && it !in settings.suggestionsDismissed && it != context.packageName && !KnownApps.hasPeople(it)
         }
-        if (suggestion != null && setup.ready) {
+        if (less != null && setup.ready) {
+            item(key = "less", contentType = "suggest") {
+                val label = rememberAppInfo(less.packageName).label
+                Suggestion(
+                    packageName = less.packageName,
+                    title = if (less.channelName != null) {
+                        pluralStringResource(R.plurals.less_type_title, less.count, label, less.channelName, less.count)
+                    } else {
+                        pluralStringResource(R.plurals.less_app_title, less.count, label, less.count)
+                    },
+                    description = stringResource(if (less.channelName != null) R.string.less_type_desc else R.string.less_app_desc),
+                    yes = stringResource(if (less.channelName != null) R.string.less_type_yes else R.string.less_app_yes),
+                    no = stringResource(R.string.less_no),
+                    onYes = {
+                        if (less.channelId != null) store.setChannel(less.packageName, less.channelId, false)
+                        else store.setEnabled(less.packageName, false)
+                        habits.reset(less.packageName)
+                    },
+                    onNo = { habits.reset(less.packageName) },
+                    modifier = Modifier.animateItem(),
+                )
+            }
+        } else if (suggestion != null && setup.ready) {
             item(key = "suggest", contentType = "suggest") {
                 Suggestion(
                     packageName = suggestion,
-                    onTurnOn = { store.setEnabled(suggestion, true) },
+                    title = stringResource(R.string.suggest_title, rememberAppInfo(suggestion).label),
+                    description = stringResource(R.string.suggest_desc),
+                    yes = stringResource(R.string.suggest_yes),
+                    no = stringResource(R.string.suggest_no),
+                    onYes = { store.setEnabled(suggestion, true) },
                     onNo = { store.dismissSuggestion(suggestion) },
                     modifier = Modifier.animateItem(),
                 )
@@ -212,7 +279,10 @@ private fun SetupIsland(setup: SetupStatus, actions: SetupActions) {
         }
         if (!setup.postGranted) add(SetupStep(R.string.setup_post, R.string.setup_post_desc, R.string.action_allow, actions.onPost))
         if (!setup.promotionAllowed) {
-            add(SetupStep(R.string.setup_promoted, R.string.setup_promoted_desc, R.string.action_open, actions.onPromotion, R.string.setup_promoted_samsung))
+            add(SetupStep(R.string.setup_promoted, R.string.setup_promoted_desc, R.string.action_open, actions.onPromotion, R.string.setup_promoted_samsung.takeIf { Device.isSamsung }))
+        }
+        if (!setup.channelEnabled) {
+            add(SetupStep(R.string.setup_channel, R.string.setup_channel_desc, R.string.action_open, actions.onChannel))
         }
     }
     IslandStage(
@@ -373,9 +443,40 @@ private fun PausedIsland(onResume: () -> Unit) {
     }
 }
 
-/** "foodpanda has had something in progress. Show it on the island?" with Turn on / No thanks. */
+/** Something the user dismissed [count] times: a whole app, or one of its notification types if named. */
+private data class LessSuggestion(val packageName: String, val channelId: String?, val channelName: String?, val count: Int)
+
+/**
+ * A notification type the user keeps dismissing, if the app has other types too and its name is known;
+ * otherwise an app the user keeps dismissing. Only apps that are on, and types still shown.
+ */
+private fun lessSuggestion(habits: Habits.State, settings: SettingsStore.State): LessSuggestion? {
+    habits.types.entries
+        .filter { (k, n) -> n >= Habits.TYPE_THRESHOLD && k.first in settings.enabled && settings.channelChoices[k.first]?.get(k.second) != false }
+        .sortedByDescending { it.value }
+        .forEach { (k, n) ->
+            val types = settings.channels[k.first].orEmpty()
+            val name = types.firstOrNull { it.id == k.second }?.name
+            if (name != null && types.size > 1) return LessSuggestion(k.first, k.second, name, n)
+        }
+    return habits.apps.entries
+        .filter { (p, n) -> n >= Habits.APP_THRESHOLD && p in settings.enabled }
+        .maxByOrNull { it.value }
+        ?.let { LessSuggestion(it.key, null, null, it.value) }
+}
+
+/** A suggestion about one app, such as "foodpanda just had something in progress. Show it on the island?". */
 @Composable
-private fun Suggestion(packageName: String, onTurnOn: () -> Unit, onNo: () -> Unit, modifier: Modifier = Modifier) {
+private fun Suggestion(
+    packageName: String,
+    title: String,
+    description: String,
+    yes: String,
+    no: String,
+    onYes: () -> Unit,
+    onNo: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val app = rememberAppInfo(packageName)
     if (app.icon == null) return // Uninstalled since it was seen.
     Surface(
@@ -388,18 +489,18 @@ private fun Suggestion(packageName: String, onTurnOn: () -> Unit, onNo: () -> Un
             Spacer(Modifier.width(16.dp))
             Column(Modifier.weight(1f)) {
                 Text(
-                    stringResource(R.string.suggest_title, app.label),
+                    title,
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSecondaryContainer,
                 )
                 Text(
-                    stringResource(R.string.suggest_desc),
+                    description,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSecondaryContainer,
                 )
                 Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth().padding(top = 4.dp)) {
-                    TextButton(onClick = onNo) { Text(stringResource(R.string.suggest_no)) }
-                    TextButton(onClick = onTurnOn) { Text(stringResource(R.string.suggest_yes)) }
+                    TextButton(onClick = onNo) { Text(no) }
+                    TextButton(onClick = onYes) { Text(yes) }
                 }
             }
         }
@@ -421,7 +522,7 @@ private fun postTestNotification(context: Context) {
         packageName = context.packageName,
         title = context.getString(R.string.test_title),
         text = context.getString(R.string.test_text),
-        chip = ChipText.Minutes(5),
+        chip = ChipText.Minutes((TEST_DURATION_MS / 60_000).toInt()),
         chipDetail = TextShortener.fit(context.getString(R.string.test_title), columns = 12),
         progress = LiveContent.Progress.Determinate(70, 100),
         chronometer = LiveContent.Chronometer(System.currentTimeMillis() + TEST_DURATION_MS, countsDown = true),
@@ -433,7 +534,12 @@ private fun postTestNotification(context: Context) {
         smallIcon = Icon.createWithResource(context, R.drawable.ic_island),
         largeIcon = null,
         app = null,
-        contentIntent = null,
+        // Tapping the test opens LiveIsland, like tapping a relayed copy opens its app.
+        contentIntent = PendingIntent.getActivity(
+            context, 0,
+            Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
+            PendingIntent.FLAG_IMMUTABLE,
+        ),
         actions = listOf(DismissReceiver.action(context, tag = null, id = Relay.TEST_NOTIFICATION_ID)),
         timeoutMillis = TEST_DURATION_MS,
     )
@@ -446,3 +552,32 @@ private fun postTestNotification(context: Context) {
 }
 
 private const val TEST_DURATION_MS = 60_000L
+
+/** The activity behind a Compose context, for permission questions only an activity can answer. */
+private fun Context.findActivity(): Activity? {
+    var c: Context? = this
+    while (c is ContextWrapper) {
+        if (c is Activity) return c
+        c = c.baseContext
+    }
+    return null
+}
+
+@Composable
+private fun RecordingBanner(onStop: () -> Unit) {
+    Surface(
+        shape = RoundedCornerShape(24.dp),
+        color = MaterialTheme.colorScheme.tertiaryContainer,
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(start = 20.dp, end = 8.dp, top = 8.dp, bottom = 8.dp)) {
+            Text(
+                stringResource(R.string.recording_banner),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onTertiaryContainer,
+                modifier = Modifier.weight(1f),
+            )
+            TextButton(onClick = onStop) { Text(stringResource(R.string.recording_stop)) }
+        }
+    }
+}

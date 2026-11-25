@@ -126,10 +126,15 @@ fun SamplesScreen(padding: PaddingValues) {
             confirmButton = {
                 TextButton(onClick = {
                     confirmShare = false
+                    // As a file: hundreds of samples as one text extra can exceed what Android passes between apps.
+                    val dir = java.io.File(context.cacheDir, "shared").apply { mkdirs() }
+                    val file = java.io.File(dir, "liveisland-samples.jsonl").apply { writeText(log.export()) }
+                    val uri = androidx.core.content.FileProvider.getUriForFile(context, "${context.packageName}.files", file)
                     val send = Intent(Intent.ACTION_SEND)
                         .setType("text/plain")
                         .putExtra(Intent.EXTRA_SUBJECT, shareSubject)
-                        .putExtra(Intent.EXTRA_TEXT, log.export())
+                        .putExtra(Intent.EXTRA_STREAM, uri)
+                        .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                     context.startActivity(Intent.createChooser(send, null))
                 }) { Text(stringResource(R.string.diagnostics_export)) }
             },

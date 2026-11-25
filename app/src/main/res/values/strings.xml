@@ -11,7 +11,6 @@
     <string name="chip_minutes">%1$d min</string>
     <string name="chip_replied">Replied</string>
     <string name="chip_new">New</string>
-    <string name="chip_replied_by">%1$s replied</string>
     <string name="chip_message">%1$s: %2$s</string>
     <string name="chip_arriving">Arriving</string>
     <plurals name="chip_stops">
@@ -33,15 +32,15 @@
     <string name="setup_listener_restricted">If the switch is greyed out: in App info, tap ⋮ › \"Allow restricted settings\", then come back. Android asks this of apps not installed from a store.</string>
     <string name="action_dismiss">Dismiss</string>
     <string name="test_title">On its way</string>
-    <string name="test_text">Arriving in about 5 minutes</string>
+    <string name="test_text">Arriving in about a minute</string>
     <plurals name="status_steps_left">
         <item quantity="one">One step left</item>
         <item quantity="other">%1$d steps left</item>
     </plurals>
-    <string name="status_battery">Battery optimization can interrupt relaying</string>
+    <string name="status_battery">Battery optimization can interrupt relaying. In App info, open Battery and choose Unrestricted.</string>
     <string name="action_test">Send a test</string>
     <string name="action_adjust">Adjust</string>
-    <string name="test_sent">Test sent. Check the status bar and Now Bar.</string>
+    <string name="test_sent">Test sent. Check the status bar.</string>
     <string name="more_options">More options</string>
 
 
@@ -64,7 +63,7 @@
     <string name="out_person">Shown: picked person</string>
     <string name="out_person_until_read">Shown until read: picked person</string>
     <string name="out_app_off">Not shown: this app is off</string>
-    <string name="out_not_ongoing">Not shown: a one-off (turn on brief display to show these)</string>
+    <string name="out_not_ongoing">Not shown: a one-off (turn on “Also one-off notifications” to show these)</string>
     <string name="out_not_picked">Not shown: not a picked person</string>
     <string name="out_keyword">Not shown: contains a skipped word</string>
     <string name="out_hidden">Not shown: silenced or paused in system settings</string>
@@ -94,7 +93,7 @@
     <string name="person_name">Name</string>
     <string name="person_name_hint">As the notification shows it: a person or a group</string>
     <string name="person_recent">Recent senders</string>
-    <string name="person_until_read_desc">Stays in the Now Bar until you read the message. When off, it is shown for %1$d s.</string>
+    <string name="person_until_read_desc">Stays shown until you read the message. When off, it is shown for %1$d s.</string>
     <string name="save">Save</string>
 
     <string name="app_mode_ongoing">Shown while in progress</string>
@@ -102,7 +101,7 @@
     <string name="app_gemini_only">Gemini replies only</string>
     <string name="app_settings">%1$s settings</string>
     <string name="app_live_now">On the island now</string>
-    <string name="app_recent_title">Recently</string>
+    <string name="app_recent_title">Recent activity</string>
     <string name="app_recent_all">All</string>
     <string name="app_recent_none">Nothing from this app yet. Its next notification shows up here, with what happened and why.</string>
     <string name="app_recent_oneoff_hint">Its latest notification was a one-off, which this app does not show yet.</string>
@@ -126,7 +125,7 @@
     <string name="picker_empty">No matching apps</string>
 
 
-    <string name="apps_seen">Other apps</string>
+    <string name="apps_seen">Other apps with something in progress</string>
 
     <!-- Diagnostics -->
     <string name="diagnostics_title">Notification samples</string>
@@ -149,9 +148,9 @@
     <string name="about_title">About</string>
     <string name="about_version">Version %1$s</string>
     <string name="about_privacy_title">Privacy</string>
-    <string name="about_privacy">LiveIsland has no internet permission, no analytics and no ads. Notifications are read only to decide what to show, and nothing leaves your device unless you share samples yourself.</string>
+    <string name="about_privacy">No internet permission, no analytics, no ads. Notifications are read on your phone to decide what to show. Kept on the phone: recent sender names (to pick people from) and, only while you record samples, notification text. Turning an app off or clearing samples deletes them.</string>
     <string name="about_license_title">License</string>
-    <string name="about_license">Apache License 2.0. Built with Jetpack Compose and AndroidX (Apache License 2.0).</string>
+    <string name="about_license">Apache License 2.0. Built with Jetpack Compose and AndroidX, also under Apache License 2.0.</string>
     <string name="about_limits_title">Known limits</string>
     <string name="about_limits">The source app\'s own notification stays in the shade. Notifications drawn with custom layouts cannot be read. Samsung\'s expanded card header always names LiveIsland as the sender.</string>
 
@@ -188,7 +187,7 @@
     <string name="show_also_oneoff_desc">Such as \"Delivered\" or an AI reply, gone after a few seconds.</string>
     <string name="keywords_title">Skipped words</string>
     <string name="keywords_none">No words are skipped.</string>
-    <string name="keywords_desc">Notifications with these words aren\'t shown. Tap one to remove it.</string>
+    <string name="keywords_desc">Notifications with these words aren\'t shown. Tap × to remove one.</string>
     <string name="keyword_add">Add words</string>
     <string name="keyword_remove">Remove %1$s</string>
     <string name="people_empty">Messages from these people always appear, such as family or a partner.</string>
@@ -203,7 +202,7 @@
         <item quantity="one">Also skips %1$d word set for all apps.</item>
         <item quantity="other">Also skips %1$d words set for all apps.</item>
     </plurals>
-    <string name="shared_keywords_edit">All apps</string>
+    <string name="shared_keywords_edit">Edit shared words</string>
     <plurals name="shared_keywords_add_common">
         <item quantity="one">Add %1$d common promotion word</item>
         <item quantity="other">Add %1$d common promotion words</item>
@@ -219,11 +218,92 @@
     <string name="island_paused">Paused</string>
     <string name="island_paused_desc">Nothing is shown on the island until you resume. The Quick Settings tile does this too.</string>
     <string name="action_pause">Pause LiveIsland</string>
-    <string name="action_resume">Resume</string>
-    <string name="suggest_title">%1$s has had something in progress</string>
+    <string name="action_resume">Resume LiveIsland</string>
+    <string name="suggest_title">%1$s just had something in progress</string>
     <string name="suggest_desc">Show it on the island?</string>
     <string name="suggest_yes">Turn on</string>
     <string name="suggest_no">No thanks</string>
     <string name="tile_on">On</string>
     <string name="tile_paused">Paused</string>
+    <string name="about_developer">Developer</string>
+    <string name="about_source">Source code</string>
+    <string name="about_source_desc">LiveIsland is open source on GitHub.</string>
+    <string name="about_changes">What\'s new</string>
+    <string name="about_changes_desc">Releases and what changed in each.</string>
+    <string name="about_report">Report a problem</string>
+    <string name="about_report_desc">Opens GitHub issues. Your app and phone versions are copied first, to paste into the report.</string>
+    <string name="about_copy_info">Copy app and phone info</string>
+    <string name="about_copy_info_desc">App version, Android version and phone model. Nothing personal.</string>
+    <string name="about_copied">Copied app and phone info</string>
+    <string name="paused_done">LiveIsland paused. Nothing is shown until you resume.</string>
+    <string name="resumed_done">LiveIsland resumed</string>
+    <string name="undo">Undo</string>
+    <string name="test_sent_samsung">Test sent. Check the status bar and the Now Bar on the lock screen.</string>
+    <string name="setup_open_failed">This phone doesn\'t have that settings page. Open Settings › Apps › LiveIsland and change it there.</string>
+    <string name="setup_channel">Turn on Live updates</string>
+    <string name="setup_channel_desc">LiveIsland\'s Live updates notifications are turned off in system settings, so nothing can appear.</string>
+    <string name="tile_setup">Finish setup</string>
+    <string name="activity_cleared">Recent activity cleared</string>
+    <string name="keyword_removed">Removed “%1$s”</string>
+    <string name="person_removed">Removed %1$s</string>
+    <string name="recording_banner">Recording notification samples. They stay on this phone until you share or clear them.</string>
+    <string name="recording_stop">Stop</string>
+
+    <!-- What the chip shows, and which app keeps it -->
+    <string name="chip_title">Status bar chip</string>
+    <string name="chip_auto">Automatic</string>
+    <string name="chip_auto_desc">A time, distance or percentage if there is one, otherwise the title.</string>
+    <string name="chip_from_title">Title</string>
+    <string name="chip_from_title_desc">The notification\'s first line, as the app writes it.</string>
+    <string name="chip_from_text">Text</string>
+    <string name="chip_from_text_desc">The line under the title.</string>
+    <string name="chip_from_number">A number</string>
+    <string name="chip_from_number_desc">A number with its unit, such as “3 stops” or “12 km”; if none has one, the first number.</string>
+    <string name="chip_first">Keep the chip for this app</string>
+    <string name="chip_first_desc">The status bar shows one chip. When something else is going on too, this app keeps it.</string>
+    <string name="out_chip_fallback">Shown: your chip choice wasn\'t in it, so the automatic one was used</string>
+    <string name="action_adjust_display">Adjust</string>
+
+    <!-- Android 17 overview of several activities -->
+    <plurals name="overview_title">
+        <item quantity="one">%1$d activity</item>
+        <item quantity="other">%1$d activities</item>
+    </plurals>
+    <string name="metric_minutes">min</string>
+    <string name="overview_setting">Overview card</string>
+
+    <!-- Suggestions from what was dismissed -->
+    <plurals name="less_app_title">
+        <item quantity="one">You dismissed %1$s %2$d time</item>
+        <item quantity="other">You dismissed %1$s %2$d times</item>
+    </plurals>
+    <string name="less_app_desc">Stop showing it on the island?</string>
+    <string name="less_app_yes">Turn off</string>
+    <plurals name="less_type_title">
+        <item quantity="one">You dismissed %1$s “%2$s” %3$d time</item>
+        <item quantity="other">You dismissed %1$s “%2$s” %3$d times</item>
+    </plurals>
+    <string name="less_type_desc">Stop showing this kind of notification? Its other kinds still show.</string>
+    <string name="less_type_yes">Stop showing</string>
+    <string name="less_no">Keep showing</string>
+
+    <!-- Sharing choices as text -->
+    <string name="rules_copy">Copy settings</string>
+    <string name="rules_copy_all">Copy all settings</string>
+    <string name="rules_paste">Paste settings</string>
+    <string name="rules_none_on">No apps are on yet.</string>
+    <plurals name="rules_copied">
+        <item quantity="one">Settings for %1$d app copied. People are not included.</item>
+        <item quantity="other">Settings for %1$d apps copied. People are not included.</item>
+    </plurals>
+    <string name="rules_paste_none">Copy LiveIsland settings first, then paste them here.</string>
+    <string name="rules_paste_missing">The apps in these settings aren\'t installed on this phone.</string>
+    <plurals name="rules_pasted">
+        <item quantity="one">Settings for %1$d app applied</item>
+        <item quantity="other">Settings for %1$d apps applied</item>
+    </plurals>
+    <plurals name="rules_pasted_some">
+        <item quantity="one">Settings for %1$d app applied; %2$d not installed</item>
+        <item quantity="other">Settings for %1$d apps applied; %2$d not installed</item>
+    </plurals>
 </resources>

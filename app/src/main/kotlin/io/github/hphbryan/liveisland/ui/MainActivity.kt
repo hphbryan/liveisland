@@ -3,7 +3,11 @@ package io.github.hphbryan.liveisland.ui
 import io.github.hphbryan.liveisland.platform.SettingsStore
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.platform.LocalContext
+import android.content.Intent
+import android.os.Build
 import android.os.Bundle
+import androidx.compose.material3.Checkbox
+import androidx.compose.runtime.LaunchedEffect
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
@@ -17,12 +21,15 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,10 +44,24 @@ import io.github.hphbryan.liveisland.R
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
+    /** An app whose page to open, from the Adjust button on a relayed Live Update; taken once shown. */
+    private val openRequest = mutableStateOf<String?>(null)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
-        setContent { LiveIslandTheme { LiveIslandApp() } }
+        if (savedInstanceState == null) openRequest.value = intent.getStringExtra(EXTRA_APP)
+        setContent { LiveIslandTheme { LiveIslandApp(openRequest.value) { openRequest.value = null } } }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        intent.getStringExtra(EXTRA_APP)?.let { openRequest.value = it }
+    }
+
+    companion object {
+        /** Package name of the app whose page to open. */
+        const val EXTRA_APP = "io.github.hphbryan.liveisland.extra.APP"
     }
 }
 
@@ -57,8 +78,14 @@ private object Route {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun LiveIslandApp() {
+private fun LiveIslandApp(openRequest: String?, onOpened: () -> Unit) {
     var stack by rememberSaveable { mutableStateOf(listOf(Route.HOME)) }
+    LaunchedEffect(openRequest) {
+        if (openRequest != null) {
+            stack = listOf(Route.HOME, Route.APP + openRequest)
+            onOpened()
+        }
+    }
     val route = stack.last()
     val push = { r: String -> stack = stack + r }
     val pop = { stack = stack.dropLast(1) }
@@ -69,8 +96,16 @@ private fun LiveIslandApp() {
     var menuOpen by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val store = remember { SettingsStore.get(context) }
-    val paused = store.state.collectAsStateWithLifecycle().value.paused
-    val testSent = stringResource(R.string.test_sent)
+    val settingsState = store.state.collectAsStateWithLifecycle().value
+    val paused = settingsState.paused
+    val overview = settingsState.overview
+    // Only Samsung phones have a Now Bar to look at.
+    val testSent = stringResource(
+        if (io.github.hphbryan.liveisland.platform.Device.isSamsung) R.string.test_sent_samsung else R.string.test_sent,
+    )
+    val pausedDone = stringResource(R.string.paused_done)
+    val resumedDone = stringResource(R.string.resumed_done)
+    val undo = stringResource(R.string.undo)
     val appPackage = route.removePrefix(Route.APP).takeIf { route.startsWith(Route.APP) }
 
     Scaffold(
@@ -101,6 +136,27 @@ private fun LiveIslandApp() {
                     }
                 },
                 actions = {
+                    if (appPackage != null) {
+                        IconButton(onClick = { menuOpen = true }) {
+                            Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.more_options))
+                        }
+                        DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.rules_copy)) },
+                                onClick = {
+                                    menuOpen = false
+                                    copyRules(context, store, listOf(appPackage))
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.rules_paste)) },
+                                onClick = {
+                                    menuOpen = false
+                                    pasteRules(context, store)?.takeIf { it != appPackage }?.let { push(Route.APP + it) }
+                                },
+                            )
+                        }
+                    }
                     if (route == Route.HOME) {
                         IconButton(onClick = { menuOpen = true }) {
                             Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.more_options))
@@ -110,7 +166,39 @@ private fun LiveIslandApp() {
                                 text = { Text(stringResource(if (paused) R.string.action_resume else R.string.action_pause)) },
                                 onClick = {
                                     menuOpen = false
-                                    setPaused(context, store, !paused)
+                                    val pausing = !paused
+                                    setPaused(context, store, pausing)
+                                    // Say what happened: the island may be off screen, or showing setup steps.
+                                    scope.launch {
+                                        snackbar.currentSnackbarData?.dismiss()
+                                        val result = snackbar.showSnackbar(
+                                            message = if (pausing) pausedDone else resumedDone,
+                                            actionLabel = undo,
+                                            duration = SnackbarDuration.Long,
+                                        )
+                                        if (result == SnackbarResult.ActionPerformed) setPaused(context, store, !pausing)
+                                    }
+                                },
+                            )
+                            if (Build.VERSION.SDK_INT >= 37) {
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(R.string.overview_setting)) },
+                                    trailingIcon = { Checkbox(checked = overview, onCheckedChange = null) },
+                                    onClick = { store.setOverview(!overview) },
+                                )
+                            }
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.rules_copy_all)) },
+                                onClick = {
+                                    menuOpen = false
+                                    copyRules(context, store, store.state.value.enabled.sorted())
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.rules_paste)) },
+                                onClick = {
+                                    menuOpen = false
+                                    pasteRules(context, store)?.let { push(Route.APP + it) }
                                 },
                             )
                             DropdownMenuItem(
@@ -140,7 +228,7 @@ private fun LiveIslandApp() {
                 scrollBehavior = scrollBehavior,
             )
         },
-    ) { padding ->
+    ) { padding -> CompositionLocalProvider(LocalSnackbar provides snackbar) {
         val openApp = { pkg: String -> push(Route.APP + pkg) }
         when {
             appPackage != null -> AppScreen(appPackage, padding, onActivity = { push(Route.ACTIVITY) }, onSharedKeywords = { push(Route.KEYWORDS) })
@@ -157,5 +245,5 @@ private fun LiveIslandApp() {
                 onTestSent = { scope.launch { snackbar.showSnackbar(testSent) } },
             )
         }
-    }
+    } }
 }

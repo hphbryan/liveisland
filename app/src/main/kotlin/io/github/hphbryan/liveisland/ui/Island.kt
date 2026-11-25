@@ -28,6 +28,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import kotlinx.coroutines.delay
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -128,10 +131,23 @@ fun IslandStage(
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
-                modifier = Modifier.clearAndSetSemantics { description?.let { contentDescription = it } },
+                // With a description, it is read instead; without one, the pill's own text is read as one item.
+                modifier = if (description != null) {
+                    Modifier.clearAndSetSemantics { contentDescription = description }
+                } else {
+                    Modifier.semantics(mergeDescendants = true) {}
+                },
             ) {
+                // A slice of the status bar: its clock keeps time like the real one (and is not read aloud).
+                val now by produceState(System.currentTimeMillis()) {
+                    while (true) {
+                        delay(60_000 - System.currentTimeMillis() % 60_000)
+                        value = System.currentTimeMillis()
+                    }
+                }
                 Text(
-                    DateFormat.getTimeFormat(context).format(Date()),
+                    DateFormat.getTimeFormat(context).format(Date(now)),
+                    modifier = Modifier.clearAndSetSemantics {},
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                 )

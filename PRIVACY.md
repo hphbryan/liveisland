@@ -7,8 +7,14 @@ LiveIsland is designed so that nothing it sees leaves your device.
 - **Notification access** is used only to decide, on the device, whether to show a Live Update and what it says.
   Notification content is held in memory while the relayed Live Update is on screen. A relayed copy follows the
   source's lock screen setting, so it never shows more there than the original would.
-- **Settings** (which apps are enabled) are stored in the app's private storage and excluded from backups.
-- **People** you pick for a chat app (names only) are stored with the settings.
+- **Settings** (which apps are enabled and how) are stored in the app's private storage. They are included in
+  Android's own backup and device transfer, so a new phone keeps them; nothing else the app stores is.
+- **People** you pick for a chat app (names only) are stored with the settings, so they are backed up with them.
+- **Dismiss counts**: how many times you dismissed each app's relayed copies, and of which notification type (its
+  id), so LiveIsland can suggest showing less. Numbers only, no notification text, on this phone only (not backed
+  up), and cleared for an app once you answer its suggestion.
+- **Copy settings** puts an app's choices (one-offs, chip, skipped words, notification type ids) on the clipboard
+  as text, only when you tap it. People are never included.
 - **Recent senders**: for chat apps you enabled, the names of the latest message senders and groups (at most 20
   per app, no message text) are kept in the app's private storage so you can pick them when adding people. They
   are forgotten when you turn the app off in LiveIsland.
@@ -23,8 +29,11 @@ LiveIsland is designed so that nothing it sees leaves your device.
 - **沒有網路權限**，無法把資料傳到任何地方。
 - **沒有分析、當機回報或廣告。**
 - **讀取通知**只用於在手機上判斷要不要顯示即時通知、顯示什麼內容。轉接的通知沿用原通知的鎖定畫面設定，不會比原通知顯示得更多。
-- **設定**存在 App 的私有空間，且不會備份。
-- **指定的人**（只有名稱）和設定存在一起。
+- **設定**（開啟了哪些 App、怎麼顯示）存在 App 的私有空間，會隨 Android 本身的備份與換機轉移帶到新手機；App 存的其他資料都不會。
+- **指定的人**（只有名稱）和設定存在一起，所以也會一起備份。
+- **移除次數**：記錄你移除每個 App 轉接通知的次數，以及是哪一類通知（類型代號），用來建議少顯示一些。只有數字、不含通知內容，
+  只存在這支手機（不備份），回答該 App 的建議後就清除。
+- **複製設定**只在你點選時，把 App 的設定（一次性通知、狀態列顯示、略過的字詞、通知類型代號）以文字放到剪貼簿，絕不包含指定的人。
 - **最近傳訊息的對象**：只針對你開啟的通訊軟體，保存最近傳訊息的人名或群組名稱（每個 App 最多 20 個，不含訊息內容），
   讓你新增指定的人時可以直接點選。在即時島裡關閉該 App 時會一併刪除。
 - **最近活動**只在記憶體保留最近通知的 App、時間與處理結果（最多 100 筆，不含通知內容），App 程序結束或按「清除」就會消失。

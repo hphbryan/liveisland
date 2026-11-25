@@ -4,11 +4,16 @@ import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationManager
 import android.content.Context
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
+import android.util.Log
+import io.github.hphbryan.liveisland.BuildConfig
 import androidx.core.content.edit
+import io.github.hphbryan.liveisland.core.ActionPicker
 import io.github.hphbryan.liveisland.core.LiveContent
+import io.github.hphbryan.liveisland.core.LockScreen
 import io.github.hphbryan.liveisland.core.SourcePolicy
 import io.github.hphbryan.liveisland.core.UpdateThrottle
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,6 +31,22 @@ class Relay private constructor(context: Context) {
     private val main = Handler(Looper.getMainLooper())
     private val icons = AppIcons(ctx)
     private val throttle = UpdateThrottle(MIN_UPDATE_INTERVAL_MS) { SystemClock.elapsedRealtime() }
+    private val settings = SettingsStore.get(ctx)
+
+    /** What each relayed copy shows now, as last posted. */
+    private val latest = HashMap<String, LiveContent>()
+
+    /** The notification last posted for each copy, to add it again (see [keepFirstOnTop]). */
+    private val posted = HashMap<String, Notification>()
+
+    /**
+     * When each copy was added to the shade (elapsed time). The status bar's one chip goes to the copy added
+     * last; an update does not change that, but removing and adding it again does.
+     */
+    private val addedAt = HashMap<String, Long>()
+
+    /** What the overview shows now, to post it only when that changes; null when it is not posted. */
+    private var overviewShown: List<Any?>? = null
 
     /** Source notification each relayed copy was built from, for its icons and tap action. */
     private val sources = HashMap<String, Notification>()
@@ -77,28 +98,40 @@ class Relay private constructor(context: Context) {
         if (!throttle.isTracked(sourceKey) && sourceKey !in sources) return
         forget(sourceKey)
         nm.cancel(sourceKey, NOTIFICATION_ID)
+        updateOverview()
     }
 
     /** Our copy of [sourceKey] went away by itself (timed out, tapped, swiped); keep the home screen in step. */
     fun copyRemoved(sourceKey: String) {
         flashing -= sourceKey
         removeShown(sourceKey)
+        // No longer on screen: not in the overview, and added afresh if its source posts again.
+        latest -= sourceKey
+        posted -= sourceKey
+        addedAt -= sourceKey
+        updateOverview()
     }
 
     /** Takes every relayed copy down, e.g. when notification access is revoked and nothing would update them. */
     fun clearAll() {
         nm.activeNotifications.filter { it.id == NOTIFICATION_ID }.forEach { nm.cancel(it.tag, NOTIFICATION_ID) }
         sources.keys.toList().forEach(::forget)
+        updateOverview()
         editDismissed { isNotEmpty().also { clear() } }
     }
 
     /** Hides a relayed copy at the user's request, until its source notification goes away. */
     fun dismiss(sourceKey: String) {
+        latest[sourceKey]?.let { Habits.get(ctx).dismissed(it.packageName, sources[sourceKey]?.channelId) }
         editDismissed { add(sourceKey) }
         flashing.remove(sourceKey)
         throttle.takeDeferred(sourceKey)
         removeShown(sourceKey)
+        latest -= sourceKey
+        posted -= sourceKey
+        addedAt -= sourceKey
         nm.cancel(sourceKey, NOTIFICATION_ID)
+        updateOverview()
     }
 
     /**
@@ -114,12 +147,18 @@ class Relay private constructor(context: Context) {
             }
         (sources.keys - active).forEach(::forget)
         editDismissed { retainAll(active) }
+        // An app may have just been put first.
+        keepFirstOnTop()
+        updateOverview()
     }
 
     private fun post(content: LiveContent) {
         if (content.sourceKey in dismissed) return
         val source = sources[content.sourceKey] ?: return
         val app = icons.identity(content.packageName)
+        val actions = LiveNotifications.sourceActions(source)
+        // Where to change what the chip shows, when the source's own buttons leave room for it.
+        val adjust = LiveNotifications.adjustAction(ctx, content.packageName).takeIf { actions.size < ActionPicker.MAX_SOURCE_ACTIONS }
         val notification = LiveNotifications.build(
             context = ctx,
             content = content,
@@ -127,13 +166,12 @@ class Relay private constructor(context: Context) {
             largeIcon = icons.largeIcon(content.packageName, source.getLargeIcon()),
             app = app,
             contentIntent = source.contentIntent,
-            actions = LiveNotifications.sourceActions(source) +
-                DismissReceiver.action(ctx, content.sourceKey, NOTIFICATION_ID),
+            actions = actions + DismissReceiver.action(ctx, content.sourceKey, NOTIFICATION_ID) + listOfNotNull(adjust),
         )
         // A source's icons or buttons can be refused when re-posted (an image from another app, too large):
         // try once without them rather than letting one notification crash the listener.
-        val posted = runCatching { nm.notify(content.sourceKey, NOTIFICATION_ID, notification) }.recoverCatching {
-            nm.notify(content.sourceKey, NOTIFICATION_ID, LiveNotifications.build(
+        val result = runCatching { notification.also { nm.notify(content.sourceKey, NOTIFICATION_ID, it) } }.recoverCatching {
+            LiveNotifications.build(
                 context = ctx,
                 content = content,
                 smallIcon = icons.smallIcon(content.packageName, source.smallIcon),
@@ -141,13 +179,17 @@ class Relay private constructor(context: Context) {
                 app = app,
                 contentIntent = source.contentIntent,
                 actions = listOf(DismissReceiver.action(ctx, content.sourceKey, NOTIFICATION_ID)),
-            ))
+            ).also { nm.notify(content.sourceKey, NOTIFICATION_ID, it) }
         }
-        if (posted.isFailure) {
+        if (result.isFailure) {
             sources -= content.sourceKey
             return
         }
         throttle.markPosted(content)
+        val added = content.sourceKey !in posted
+        latest[content.sourceKey] = content
+        posted[content.sourceKey] = result.getOrThrow()
+        if (added) addedAt[content.sourceKey] = SystemClock.elapsedRealtime()
         val shownAt = SystemClock.elapsedRealtime()
         val chipText = content.chip?.let { LiveNotifications.chipLabel(ctx, it, content.chipDetail) } ?: content.title
         addShown(Shown(content.sourceKey, content.packageName, chipText, shownAt))
@@ -162,10 +204,69 @@ class Relay private constructor(context: Context) {
                 removeShown(content.sourceKey, shownAt)
             }, timeout)
         }
+        if (added) keepFirstOnTop()
+        updateOverview()
+    }
+
+    /**
+     * Keeps an activity from an app the user put first as the last one added, so it keeps the status bar
+     * chip: when another activity was added after it, it is taken away and added again (its card stays
+     * where it was). One-offs and messages are left to take the chip while they last.
+     */
+    private fun keepFirstOnTop() {
+        val ongoing = latest.values.filter { it.kind == LiveContent.Kind.ONGOING && it.sourceKey in posted }
+        val newestOther = ongoing.filterNot { settings.isFirst(it.packageName) }.maxOfOrNull { addedAt[it.sourceKey] ?: 0L } ?: return
+        ongoing.filter { settings.isFirst(it.packageName) && (addedAt[it.sourceKey] ?: 0L) < newestOther }
+            .forEach { addAgain(it.sourceKey) }
+    }
+
+    /** Takes [sourceKey]'s copy away and adds it again, making it the last added, the one with the chip. */
+    private fun addAgain(sourceKey: String) {
+        val notification = posted[sourceKey] ?: return
+        nm.cancel(sourceKey, NOTIFICATION_ID)
+        runCatching { nm.notify(sourceKey, NOTIFICATION_ID, notification) }
+        addedAt[sourceKey] = SystemClock.elapsedRealtime()
+    }
+
+    /**
+     * On Android 17, while several activities are on, one more card lists them all, each with its value
+     * (Notification.MetricStyle). Only activities whose copies may show on the lock screen are listed.
+     */
+    private fun updateOverview() {
+        val items = latest.values
+            .filter {
+                it.kind == LiveContent.Kind.ONGOING && it.lockScreen == LockScreen.DEFAULT &&
+                    it.sourceKey !in dismissed && it.sourceKey in sources
+            }
+            // The one holding the chip first: an app put first, then the latest added.
+            .sortedWith(
+                compareByDescending<LiveContent> { settings.isFirst(it.packageName) }.thenByDescending { addedAt[it.sourceKey] ?: 0L },
+            )
+        if (Build.VERSION.SDK_INT < 37 || !settings.state.value.overview || items.size < 2) {
+            if (overviewShown != null) nm.cancel(OVERVIEW_ID)
+            overviewShown = null
+            return
+        }
+        val key = items.map { listOf(it.packageName, it.chip, it.chronometer, it.title) }
+        if (key == overviewShown) return
+        val rows = items.map { LiveNotifications.OverviewRow(icons.identity(it.packageName)?.name ?: it.title, it) }
+        val added = overviewShown == null
+        runCatching { nm.notify(OVERVIEW_ID, LiveNotifications.overview(ctx, rows)) }
+            .onSuccess {
+                overviewShown = key
+                // Just added, the overview would take the chip, with LiveIsland's icon and a bare number:
+                // give it back to the activity that had it, with its app's icon and words.
+                if (added) addAgain(items.first().sourceKey)
+            }
+            // Debug builds only, and no notification text.
+            .onFailure { if (BuildConfig.DEBUG) Log.w(TAG, "overview not posted", it) }
     }
 
     private fun forget(key: String) {
         throttle.forget(key)
+        latest -= key
+        posted -= key
+        addedAt -= key
         sources -= key
         flashing -= key
         removeShown(key)
@@ -178,6 +279,10 @@ class Relay private constructor(context: Context) {
         /** All relayed copies share this id and are told apart by tag (the source key). */
         const val NOTIFICATION_ID = 1
         const val TEST_NOTIFICATION_ID = 2
+
+        /** The Android 17 card listing every activity at once. */
+        const val OVERVIEW_ID = 3
+        private const val TAG = "LiveIsland"
 
         /** [Shown.sourceKey] of the test Live Update posted from the home screen. */
         const val TEST_KEY = "test"
