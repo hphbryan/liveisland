@@ -211,4 +211,34 @@ class ClassifierTest {
         assertEquals(ChipText.Headline("Preparing your…"), relayed(Classifier.classify(s, policy)).chip)
         assertEquals("relay:ongoing-fallback", Classifier.explain(s, policy))
     }
+
+    @Test fun `a picked person's message carries its text as the latest line`() {
+        val line = "jp.naver.line.android"
+        val policy = FakePolicy(enabled = setOf(line), people = mapOf(line to listOf(PersonRule("Amy"))))
+        val c = relayed(Classifier.classify(snapshot(packageName = line, title = "Amy", text = "我到了", isOngoing = false), policy))
+        assertEquals(listOf("我到了"), c.messages)
+    }
+
+    @Test fun `the app's id for the latest message comes along`() {
+        val line = "jp.naver.line.android"
+        val policy = FakePolicy(enabled = setOf(line), flash = setOf(line))
+        val s = snapshot(packageName = line, title = "Amy", text = "好", isOngoing = false, messageId = "m42")
+        assertEquals("m42", relayed(Classifier.classify(s, policy)).messageId)
+    }
+
+    @Test fun `a conversation listing several messages carries them all, senders named in a group`() {
+        val app = "com.instagram.android"
+        val policy = FakePolicy(enabled = setOf(app), flash = setOf(app))
+        val s = snapshot(
+            packageName = app, title = "Family", text = "hi", isOngoing = false, isConversation = true,
+            sender = "Bob", conversationTitle = "Family",
+            messages = listOf(ChatLine("Amy", "dinner?"), ChatLine("Bob", "hi")),
+        )
+        assertEquals(listOf("Amy: dinner?", "Bob: hi"), relayed(Classifier.classify(s, policy)).messages)
+    }
+
+    @Test fun `one-offs that are not chats carry no messages`() {
+        val policy = FakePolicy(enabled = setOf(app), flash = setOf(app))
+        assertEquals(emptyList<String>(), relayed(Classifier.classify(snapshot(isOngoing = false, title = "Order delivered", text = "Enjoy"), policy)).messages)
+    }
 }

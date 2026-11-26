@@ -7,13 +7,18 @@ import android.os.Parcelable
 import android.os.Process
 import android.service.notification.NotificationListenerService.Ranking
 import android.service.notification.StatusBarNotification
+import io.github.hphbryan.liveisland.core.ChatLine
 import io.github.hphbryan.liveisland.core.LockScreen
+import io.github.hphbryan.liveisland.core.MessageHistory
 import io.github.hphbryan.liveisland.core.NotificationSnapshot
 
 /** Converts a posted notification into the platform-independent [NotificationSnapshot]. */
 object SnapshotReader {
     /** Present on notifications that use One UI's own Live Notification format. */
     private const val SAMSUNG_LIVE_STYLE = "android.ongoingActivityNoti.style"
+
+    /** LINE's id for the message its notification shows (LINE keeps only the latest message in it). */
+    private const val LINE_MESSAGE_ID = "line.message.id"
 
     /**
      * Channels Android's notification classification moves notifications into (NotificationChannel's
@@ -51,6 +56,8 @@ object SnapshotReader {
             chronometerCountsDown = e.getBoolean(Notification.EXTRA_CHRONOMETER_COUNT_DOWN, false),
             whenMillis = n.`when`,
             sender = if (withSender) latestSender(e) else null,
+            messages = if (withSender) messages(e) else emptyList(),
+            messageId = e.getString(LINE_MESSAGE_ID)?.ifBlank { null },
             conversationTitle = e.getCharSequence(Notification.EXTRA_CONVERSATION_TITLE)?.toString(),
             isConversation = e.getString(Notification.EXTRA_TEMPLATE) == Notification.MessagingStyle::class.java.name,
             isHiddenBySystem = ranking != null &&
@@ -73,6 +80,14 @@ object SnapshotReader {
             sbn.user != Process.myUserHandle() -> LockScreen.APP_NAME_ONLY
             else -> LockScreen.DEFAULT
         }
+    }
+
+    /** The messages a MessagingStyle notification lists, oldest first; the last [MessageHistory.MAX_LINES]. */
+    private fun messages(extras: Bundle): List<ChatLine> {
+        val bundles = extras.getParcelableArray(Notification.EXTRA_MESSAGES, Parcelable::class.java) ?: return emptyList()
+        return Notification.MessagingStyle.Message.getMessagesFromBundleArray(bundles)
+            .mapNotNull { m -> m.text?.toString()?.trim()?.ifEmpty { null }?.let { ChatLine(m.senderPerson?.name?.toString(), it) } }
+            .takeLast(MessageHistory.MAX_LINES)
     }
 
     /** Sender of the newest message in a MessagingStyle notification. */

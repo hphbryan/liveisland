@@ -79,7 +79,7 @@ choose **Watch › Custom › Releases** at the top of this page on GitHub.
 5. On the lock screen the copy never shows more than the source would: if the source app hides its content
    there, the copy is hidden too.
 6. Tapping it opens the source app. Up to two of the source's buttons (such as an inline reply) are carried
-   over and still go to that app, and a Dismiss button hides the relayed copy until the source ends.
+   over and still go to that app, and a Dismiss button hides the relayed copy until the source ends (for a chat, until its next message).
    When the source notification goes away, so does the relayed copy.
 7. The status bar shows one chip, the last activity added. An app set to **keep the chip** is added again when
    another activity starts, so it keeps it. On Android 17, while several activities are going on, an extra

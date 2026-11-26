@@ -17,6 +17,13 @@ data class LiveContent(
     val timeoutMillis: Long? = null,
     /** How much of the copy the lock screen may show, carried over from the source. */
     val lockScreen: LockScreen = LockScreen.DEFAULT,
+    /**
+     * For chat messages: the unread ones, oldest first, the latest last. When there are several, the
+     * expanded copy shows them all, as a line each.
+     */
+    val messages: List<String> = emptyList(),
+    /** [NotificationSnapshot.messageId] of the latest message. Not part of the [fingerprint]: [messages] is. */
+    val messageId: String? = null,
 ) {
     enum class Kind {
         /** Mirrors an ongoing activity for as long as the source notification is ongoing. */
@@ -37,7 +44,7 @@ data class LiveContent(
     data class Chronometer(val whenMillis: Long, val countsDown: Boolean)
 
     /** Identity of what the user sees; an update with the same fingerprint is not re-posted. */
-    val fingerprint: Int get() = listOf(title, text, chip, chipDetail, progress, chronometer, kind, lockScreen).hashCode()
+    val fingerprint: Int get() = listOf(title, text, chip, chipDetail, progress, chronometer, kind, lockScreen, messages).hashCode()
 }
 
 /**

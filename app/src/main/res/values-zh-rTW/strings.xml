@@ -284,4 +284,7 @@
     <plurals name="rules_pasted_some">
         <item quantity="other">已套用 %1$d 個 App 的設定，%2$d 個沒有安裝</item>
     </plurals>
+    <plurals name="unread_messages">
+        <item quantity="other">%d 則訊息</item>
+    </plurals>
 </resources>

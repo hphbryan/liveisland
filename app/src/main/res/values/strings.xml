@@ -306,4 +306,8 @@
         <item quantity="one">Settings for %1$d app applied; %2$d not installed</item>
         <item quantity="other">Settings for %1$d apps applied; %2$d not installed</item>
     </plurals>
+    <plurals name="unread_messages">
+        <item quantity="one">%d message</item>
+        <item quantity="other">%d messages</item>
+    </plurals>
 </resources>

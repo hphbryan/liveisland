@@ -140,6 +140,9 @@ object Classifier {
         kind = LiveContent.Kind.FLASH,
         timeoutMillis = timeoutMillis,
         lockScreen = s.lockScreen,
+        // Messages from others in a chat app, shown briefly: earlier unread ones come along too.
+        messages = if (s.isConversation || KnownApps.hasPeople(s.packageName)) messageLines(s) else emptyList(),
+        messageId = s.messageId,
     )
 
     private fun personContent(s: NotificationSnapshot, person: PersonRule, flashMillis: Long) = LiveContent(
@@ -153,7 +156,16 @@ object Classifier {
         kind = if (person.untilRead) LiveContent.Kind.STICKY else LiveContent.Kind.FLASH,
         timeoutMillis = if (person.untilRead) null else flashMillis,
         lockScreen = s.lockScreen,
+        messages = messageLines(s),
+        messageId = s.messageId,
     )
+
+    /** The messages [s] shows, a line each: all it lists, or else its text as the latest message. */
+    private fun messageLines(s: NotificationSnapshot): List<String> {
+        val chat = s.conversationTitle?.ifBlank { null } ?: s.title!!.trim()
+        val lines = s.messages.ifEmpty { listOfNotNull(s.text?.trim()?.ifEmpty { null }?.let { ChatLine(s.sender, it) }) }
+        return lines.map { MessageHistory.format(it, chat) }
+    }
 
     /**
      * The line a chip value was not taken from, so the chip says what it is about: "12 往火車站" next to

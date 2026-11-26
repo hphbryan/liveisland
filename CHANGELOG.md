@@ -5,6 +5,17 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-26
+
+### Added
+- Messages from a chat show all their unread messages when expanded, not only the latest, even from apps such
+  as LINE whose own notification keeps only the latest. They are kept in memory until the chat is read. The
+  collapsed card says how many there are. LINE's message ids keep two messages that say the same apart.
+
+### Changed
+- Dismissing a chat's message hides it until the chat's next message, which then shows on its own, rather than
+  hiding everything from that chat until it is read.
+
 ## [0.2.1] - 2026-11-26
 
 ### Fixed
@@ -122,7 +133,8 @@ First public version.
 - Pause everything from the menu or a Quick Settings tile.
 - Fixed teal-and-ink colour scheme; English and Traditional Chinese.
 
-[Unreleased]: https://github.com/hphbryan/liveisland/compare/v0.2.1...HEAD
+[Unreleased]: https://github.com/hphbryan/liveisland/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/hphbryan/liveisland/compare/v0.2.1...v0.3.0
 [0.2.1]: https://github.com/hphbryan/liveisland/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/hphbryan/liveisland/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/hphbryan/liveisland/releases/tag/v0.1.0

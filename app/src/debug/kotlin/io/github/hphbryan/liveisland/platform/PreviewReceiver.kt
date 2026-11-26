@@ -30,7 +30,7 @@ import io.github.hphbryan.liveisland.core.SourcePolicy
  * the Dismiss button on that source's relayed copy does.
  *
  * `--ez relay true` sends it through [Relay] with the real settings instead, as if `pkg` had posted it
- * (the app must be on): the chip choice, which app keeps the chip, the overview card, Adjust and Dismiss
+ * (the app must be on; `ongoing false`, `sender` and `msgid`, an app's id for the message, apply too): the chip choice, which app keeps the chip, the overview card, Adjust and Dismiss
  * all apply. `--es end <id>` then ends that one, as if the app removed its notification.
  */
 class PreviewReceiver : BroadcastReceiver() {
@@ -56,7 +56,10 @@ class PreviewReceiver : BroadcastReceiver() {
         val id = intent.getIntExtra("id", 0)
         if (intent.getBooleanExtra("relay", false)) {
             val pkg = intent.getStringExtra("pkg") ?: return
-            val snapshot = snapshot(id, pkg, intent.getStringExtra("title") ?: "Preview", intent.getStringExtra("text"), null, true, intent.getIntExtra("progress", 0))
+            val snapshot = snapshot(
+                id, pkg, intent.getStringExtra("title") ?: "Preview", intent.getStringExtra("text"), intent.getStringExtra("sender"),
+                intent.getBooleanExtra("ongoing", true), intent.getIntExtra("progress", 0),
+            ).copy(messageId = intent.getStringExtra("msgid"))
             val source = android.app.Notification.Builder(context, intent.getStringExtra("channel") ?: LiveNotifications.CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_island).build()
             when (val d = Classifier.classify(snapshot, SettingsStore.get(context))) {

@@ -5,8 +5,10 @@ LiveIsland is designed so that nothing it sees leaves your device.
 - **No network access.** The app does not request the `INTERNET` permission, so it cannot send data anywhere.
 - **No analytics, crash reporting or ads.**
 - **Notification access** is used only to decide, on the device, whether to show a Live Update and what it says.
-  Notification content is held in memory while the relayed Live Update is on screen. A relayed copy follows the
-  source's lock screen setting, so it never shows more there than the original would.
+  Notification content is held in memory while the relayed Live Update is on screen. For a chat, its unread
+  messages (up to 10) are kept in memory too, so the relayed copy can show all of them, and forgotten when the
+  chat's notification goes away. A relayed copy follows the source's lock screen setting, so it never shows more
+  there than the original would.
 - **Settings** (which apps are enabled and how) are stored in the app's private storage. They are included in
   Android's own backup and device transfer, so a new phone keeps them; nothing else the app stores is.
 - **People** you pick for a chat app (names only) are stored with the settings, so they are backed up with them.
@@ -28,7 +30,8 @@ LiveIsland is designed so that nothing it sees leaves your device.
 
 - **沒有網路權限**，無法把資料傳到任何地方。
 - **沒有分析、當機回報或廣告。**
-- **讀取通知**只用於在手機上判斷要不要顯示即時通知、顯示什麼內容。轉接的通知沿用原通知的鎖定畫面設定，不會比原通知顯示得更多。
+- **讀取通知**只用於在手機上判斷要不要顯示即時通知、顯示什麼內容。聊天的未讀訊息（最多 10 則）只放在記憶體，讓轉接的通知展開時能看到全部，
+  原通知消失（已讀）就忘掉。轉接的通知沿用原通知的鎖定畫面設定，不會比原通知顯示得更多。
 - **設定**（開啟了哪些 App、怎麼顯示）存在 App 的私有空間，會隨 Android 本身的備份與換機轉移帶到新手機；App 存的其他資料都不會。
 - **指定的人**（只有名稱）和設定存在一起，所以也會一起備份。
 - **移除次數**：記錄你移除每個 App 轉接通知的次數，以及是哪一類通知（類型代號），用來建議少顯示一些。只有數字、不含通知內容，

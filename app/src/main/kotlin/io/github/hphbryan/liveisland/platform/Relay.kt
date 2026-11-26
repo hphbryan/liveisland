@@ -14,6 +14,7 @@ import androidx.core.content.edit
 import io.github.hphbryan.liveisland.core.ActionPicker
 import io.github.hphbryan.liveisland.core.LiveContent
 import io.github.hphbryan.liveisland.core.LockScreen
+import io.github.hphbryan.liveisland.core.MessageHistory
 import io.github.hphbryan.liveisland.core.SourcePolicy
 import io.github.hphbryan.liveisland.core.UpdateThrottle
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -54,6 +55,9 @@ class Relay private constructor(context: Context) {
     /** The activities the overview listed when the user swiped it away. */
     private var overviewSwiped: Set<String>? = null
 
+    /** Each chat's unread messages, in memory until its notification goes away. */
+    private val history = MessageHistory()
+
     /** Source notification each relayed copy was built from, for its icons and tap action. */
     private val sources = HashMap<String, Notification>()
 
@@ -82,8 +86,10 @@ class Relay private constructor(context: Context) {
         if (dismissed.change()) dismissedPrefs.edit { putStringSet(KEY_DISMISSED, HashSet(dismissed)) }
     }
 
-    fun show(content: LiveContent, source: Notification) {
-        if (content.sourceKey in dismissed) return
+    fun show(incoming: LiveContent, source: Notification) {
+        if (incoming.sourceKey in dismissed && !isNewMessage(incoming)) return
+        // A chat's earlier unread messages come along with the latest.
+        val content = if (incoming.messages.isEmpty()) incoming else incoming.copy(messages = history.merge(incoming.sourceKey, incoming.messages, incoming.messageId))
         sources[content.sourceKey] = source
         when (val action = throttle.offer(content)) {
             UpdateThrottle.Action.Post -> post(content)
@@ -92,6 +98,23 @@ class Relay private constructor(context: Context) {
                 throttle.takeDeferred(content.sourceKey)?.let(::post)
             }, action.delayMillis)
         }
+    }
+
+    /**
+     * Whether [content] is a newer message in a chat the user dismissed; then the chat comes back, with the
+     * messages since. Right after a restart nothing is known yet: what the chat shows then was dismissed.
+     */
+    private fun isNewMessage(content: LiveContent): Boolean {
+        val key = content.sourceKey
+        if (content.messages.isEmpty()) return false
+        if (!history.knows(key)) {
+            history.merge(key, content.messages, content.messageId)
+            history.dismissed(key)
+            return false
+        }
+        if (history.merge(key, content.messages, content.messageId).isEmpty()) return false
+        editDismissed { remove(key) }
+        return true
     }
 
     /**
@@ -126,10 +149,14 @@ class Relay private constructor(context: Context) {
         editDismissed { isNotEmpty().also { clear() } }
     }
 
-    /** Hides a relayed copy at the user's request, until its source notification goes away. */
+    /**
+     * Hides a relayed copy at the user's request, until its source notification goes away; for a chat, until
+     * its next message.
+     */
     fun dismiss(sourceKey: String) {
         latest[sourceKey]?.let { Habits.get(ctx).dismissed(it.packageName, sources[sourceKey]?.channelId) }
         editDismissed { add(sourceKey) }
+        history.dismissed(sourceKey)
         flashing.remove(sourceKey)
         throttle.takeDeferred(sourceKey)
         removeShown(sourceKey)
@@ -286,6 +313,7 @@ class Relay private constructor(context: Context) {
 
     private fun forget(key: String) {
         throttle.forget(key)
+        history.forget(key)
         latest -= key
         posted -= key
         addedAt -= key

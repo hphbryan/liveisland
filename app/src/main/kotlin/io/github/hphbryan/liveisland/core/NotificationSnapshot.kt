@@ -38,6 +38,13 @@ data class NotificationSnapshot(
     val conversationTitle: String? = null,
     /** Uses MessagingStyle, i.e. a chat message or conversation. */
     val isConversation: Boolean = false,
+    /** For MessagingStyle: the messages the notification lists, oldest first (the app decides how many). */
+    val messages: List<ChatLine> = emptyList(),
+    /**
+     * An id the app gives its latest message (LINE's "line.message.id"), so a message re-posted is not shown
+     * twice and two messages that say the same are both shown.
+     */
+    val messageId: String? = null,
     /**
      * The user keeps this out of sight: its channel is minimised or blocked, or the app is paused (Digital
      * Wellbeing, Focus mode). Relaying it would put back what the user hid.

@@ -74,8 +74,11 @@ object LiveNotifications {
             app.color?.let(b::setColor)
             // The app's icon goes on the card's right unless the source has its own picture (a contact photo);
             // then name the app instead, unless the title already does.
-            if (largeIcon != null && !content.title.contains(app.name, ignoreCase = true)) b.setSubText(app.name)
         }
+        // Several unread messages: say how many, as only the latest shows until it is expanded.
+        val count = content.messages.size.takeIf { it >= 2 }?.let { context.resources.getQuantityString(R.plurals.unread_messages, it, it) }
+        val appName = app?.name?.takeIf { largeIcon != null && !content.title.contains(it, ignoreCase = true) }
+        listOfNotNull(appName, count).joinToString(" · ").ifEmpty { null }?.let(b::setSubText)
         (largeIcon ?: app?.icon)?.let { b.setLargeIcon(it) }
         content.chip?.let { b.setShortCriticalText(chipLabel(context, it, content.chipDetail)) }
         content.chronometer?.let {
@@ -122,7 +125,9 @@ object LiveNotifications {
                 )
             }
             LiveContent.Progress.Indeterminate -> b.setStyle(Notification.ProgressStyle().setProgressIndeterminate(true))
-            null -> content.text?.let { b.setStyle(Notification.BigTextStyle().bigText(it)) }
+            // Several unread messages: all of them, a line each, when expanded.
+            null -> (if (content.messages.size >= 2) content.messages.joinToString("\n") else content.text)
+                ?.let { b.setStyle(Notification.BigTextStyle().bigText(it)) }
         }
         return b.build()
     }
