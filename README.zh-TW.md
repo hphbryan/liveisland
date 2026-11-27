@@ -46,8 +46,21 @@ App，安裝後會出現在推薦清單；完整清單與各 App 的確認程度
    「**設定 › 開發人員選項**」打開「**所有 App 的即時通知**」。沒打開的話，One UI 只會顯示 Samsung 白名單內 App 的即時通知。
 4. 點「**加入 App**」打開你常用的 App，再從首頁「**送一則測試**」確認。
 
-更新時直接安裝新版 APK 覆蓋舊版，設定會保留。想收到新版通知，在 GitHub 這個頁面上方點
-**Watch › Custom › Releases**。
+### 更新
+
+即時島沒有網路權限，所以不會自己檢查更新。有兩種方式保持最新版：
+
+- **用 [Obtainium](https://github.com/ImranR98/Obtainium) 自動更新**：Obtainium 是一個追蹤 GitHub Releases 的開源 App。
+  先從[它的 Releases](https://github.com/ImranR98/Obtainium/releases/latest) 安裝 Obtainium，再用手機點下面的按鈕；
+  或在 Obtainium 點「**新增應用程式**」，把 `https://github.com/hphbryan/liveisland` 貼到「**應用程式來源網址**」，再點「**新增**」。
+  之後有新版時 Obtainium 會通知你，點一下通知就能更新。它從這個專案的 Releases 下載 APK，而且 Android 只會安裝跟你手上版本同一把金鑰簽署的更新。
+
+  [<img src="https://raw.githubusercontent.com/ImranR98/Obtainium/298b48a0c6088abbee3c0f0db2ede755fbeef9e6/assets/graphics/badge_obtainium.png" alt="從 Obtainium 取得" height="54">](https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/hphbryan/liveisland)
+
+- **手動更新**：到 [Releases](../../releases/latest) 下載新版 APK，直接安裝覆蓋舊版。想收到新版通知，在 GitHub
+  這個頁面上方點 **Watch › Custom › Releases**。
+
+兩種方式都會保留設定。
 
 ## 運作方式
 

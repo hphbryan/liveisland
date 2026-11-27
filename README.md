@@ -53,8 +53,23 @@ only if you set **Everyone else** to **Show briefly**.
    apps**. Without it, One UI only shows Live Updates from apps on Samsung's allowlist.
 4. Tap **Add apps** and turn on the apps you use, then **Send a test** from the home screen.
 
-To update, install the newer APK over the old one; your settings are kept. To be told about new versions,
-choose **Watch › Custom › Releases** at the top of this page on GitHub.
+### Updates
+
+LiveIsland has no internet permission, so it never checks for updates itself. There are two ways to stay current.
+
+- **Automatically, with [Obtainium](https://github.com/ImranR98/Obtainium)**, an open-source app that watches
+  GitHub Releases. Install Obtainium from [its Releases](https://github.com/ImranR98/Obtainium/releases/latest),
+  then tap the button below on your phone. Or, in Obtainium, tap **Add app**, paste
+  `https://github.com/hphbryan/liveisland` into **App source URL** and tap **Add**. Obtainium then tells you
+  when a new version is out and installs it when you tap the notification. It downloads the APK from this
+  repository's Releases. Android only installs an update signed with the same key as the version you have.
+
+  [<img src="https://raw.githubusercontent.com/ImranR98/Obtainium/298b48a0c6088abbee3c0f0db2ede755fbeef9e6/assets/graphics/badge_obtainium.png" alt="Get it on Obtainium" height="54">](https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/hphbryan/liveisland)
+
+- **By hand:** download the newer APK from [Releases](../../releases/latest) and install it over the old one.
+  To be told about new versions, choose **Watch › Custom › Releases** at the top of this page on GitHub.
+
+Either way, your settings are kept.
 
 ## How it works
 
